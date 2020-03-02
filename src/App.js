@@ -101,7 +101,7 @@ function App() {
         urlOutput += url.json.slice(0,starIndex) + '#' + encodeURIComponent(url.name);
       }else if(url.type === 'ss'){
         const starIndex = url.json.search('#')
-        urlOutput += url.json.slice(0,starIndex) + '#' + encodeURIComponent(url.name);
+        urlOutput += 'ss://' + url.json.slice(0,starIndex) + '#' + encodeURIComponent(url.name);
       }else {
         continue;
       }
