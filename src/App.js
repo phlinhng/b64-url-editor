@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
-import { Button } from 'antd';
+import { Button, Tooltip } from 'antd';
 import { Card } from 'antd';
 import { Row, Col } from 'antd';
 import { Input } from 'antd';
 import { Select } from 'antd';
-import { EditTwoTone } from '@ant-design/icons'
+import { EditTwoTone, DownloadOutlined, UndoOutlined, SaveOutlined } from '@ant-design/icons'
 import shortid from 'shortid';
 import useClippy from 'use-clippy';
 import './App.css';
@@ -82,8 +82,35 @@ function App() {
         urls.push(urlItem);
       }
       setUrlList(urls);
+      console.log(urls);
       return urls;
     }
+  }
+
+  const encodeB64 = (arr) => {
+    console.log(arr);
+    let urlOutput = '';
+    for (let i=0; i<arr.length; ++i){
+      const url = arr[i];
+      if(url.type === 'vmess'){
+        let newUrl = JSON.parse(JSON.stringify(url.json));
+        newUrl.ps = url.name;
+        urlOutput += 'vmess://' + Base64.encode(JSON.stringify(newUrl));
+      }else if(url.type === 'trojan'){
+        const starIndex = url.json.search('#')
+        urlOutput += url.json.slice(0,starIndex) + '#' + encodeURIComponent(url.name);
+      }else if(url.type === 'ss'){
+        const starIndex = url.json.search('#')
+        urlOutput += url.json.slice(0,starIndex) + '#' + encodeURIComponent(url.name);
+      }else {
+        continue;
+      }
+      if ( i+1 < arr.length) {
+        urlOutput += '\n';
+      }
+    }
+    console.log(Base64.encode(urlOutput));
+    return Base64.encode(urlOutput);
   }
 
   const inputOnChange = (e) => {
@@ -108,23 +135,54 @@ function App() {
     setSelect(urlList[urlList.findIndex(x => x.id === e)]);
   }
 
+  const editNameOnInput = (e) => {
+    setSelect({...urlSelected, name: e.target.value });
+  }
+
+  const editNameOnClick = () => {
+    // Mapping the old array into a new one, swapping what you want to change for an updated item along the way.
+    setUrlList(urlList.map(item => item.id === urlSelected.id ? {...item, name: urlSelected.name }: item));
+  }
+
+  const editButton = (
+    <Tooltip placement="bottom" title="修改" arrowPointAtCenter>
+    <Button type="link" icon={<EditTwoTone/>} size="small" onClick={editNameOnClick}/>
+  </Tooltip>)
+
+  const saveOnClick = () => {
+    const output = encodeB64(urlList);
+    setUrlInput(output);
+  }
+
   return (
     <div className="App">
       <Row gutter={16} justify={"space-around"}>
         <Col span={12}>
           <Card >
-            <Select loading={isLoading || !urlInput.length} style={{width: "60%", marginBottom: 16}} onChange={selectOnChange}>
-              { urlList.map( (item) => (<Option value={item.id}><b>[{item.type}]</b> {item.name}</Option>) ) }
+            <Row justify={"center"} style={{marginBottom: 16}}>
+            <Select loading={isLoading || !urlInput.length} style={{width: "60%"}} onChange={selectOnChange}>
+              { urlList.map( (item) => (<Option key={item.id}><b>[{item.type}]</b> {item.name}</Option>) ) }
             </Select>
-            <Row justify={"center"}>
-              <Input addonAfter={<EditTwoTone />} value={urlSelected.name} style={{width: "60%"}}/>
+            </Row>
+            <Row justify={"center"} style={{marginBottom: 16}}>
+              <Input addonAfter={editButton} value={urlSelected.name} onChange={editNameOnInput} style={{width: "60%"}}/>
+            </Row>
+            <Row gutter={24} justify={"center"}>
+              <Col>
+              <Button type="primary" icon={<UndoOutlined />}>復原</Button>
+              </Col>
+              <Col>
+              <Button type="primary" icon={<SaveOutlined />} onClick={saveOnClick}>保存</Button>
+              </Col>
+              <Col>
+              <Button type="primary" icon={<DownloadOutlined />}>匯出</Button>
+              </Col>
             </Row>
           </Card>
         </Col>
         <Col span={12}>
           <Card>
-            右邊卡片
-            <TextArea rows={4} onChange={inputOnChange} value={urlInput}/>
+            <TextArea rows={4} onChange={inputOnChange} value={urlInput} style={{marginBottom: 16}}/>
             <Button type="primary" block onClick={importFromClipboard}>從剪貼版導入</Button>
           </Card>
         </Col>
