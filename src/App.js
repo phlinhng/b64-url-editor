@@ -3,17 +3,23 @@ import { Button } from 'antd';
 import { Card } from 'antd';
 import { Row, Col } from 'antd';
 import { Input } from 'antd';
+import { Select } from 'antd';
+import { EditTwoTone } from '@ant-design/icons'
+import shortid from 'shortid';
 import useClippy from 'use-clippy';
 import './App.css';
 
 function App() {
   const { TextArea } = Input;
+  const { Option } = Select;
 
   const [ urlInput, setUrlInput ] = useState('');
-
   const [ urlList, setUrlList ] = useState([]);
+  const [ urlSelected, setSelect ] = useState({});
 
   const [ clipboard, setClipboard ] = useClippy();
+
+  const [ isLoading, setLoading ] = useState(true);
 
   // convert utf-8 encoded base64
   const Base64 = {
@@ -53,11 +59,11 @@ function App() {
     if(urlType(text) === 'vmess'){
       return urlJson(text)['ps'];
     }else if (urlType(text) === 'trojan'){
-      const peerIndex = text.search('peer=');
-      return text.slice(peerIndex+5);
+      const starIndex = text.search('#');
+      return decodeURIComponent(text.slice(starIndex+1));
     }else if (urlType(text) === 'ss'){
       const starIndex = text.search('#');
-      return text.slice(starIndex+1);
+      return decodeURIComponent(text.slice(starIndex+1));
     }
   }
 
@@ -67,35 +73,52 @@ function App() {
   }
 
   const decodeB64 = (text) => {
-    if(isValidB64(text)){
+    if(text.length && isValidB64(text)){
       const list = Base64.decode(text).split('\n');
       const urls = [];
       for (let item of list){
-        let urlItem = { 'type': urlType(item), 'name': urlName(item), 'json': urlJson(item) };
+        let urlItem = { 'type': urlType(item), 'name': urlName(item),
+        'json': urlJson(item), 'id': shortid.generate() };
         urls.push(urlItem);
       }
-      console.log(urls);
+      setUrlList(urls);
+      return urls;
     }
   }
 
   const inputOnChange = (e) => {
     setUrlInput(e.target.value);
-    decodeB64(e.target.value);
+    const urls = decodeB64(e.target.value);
+    if (urls){
+      setLoading(false);
+    }
+    
   }
 
   const importFromClipboard = () => {
     const pastedItem = clipboard;
     setUrlInput(pastedItem);
-    decodeB64(pastedItem);
+    const urls = decodeB64(pastedItem);
+    if (urls){
+      setLoading(false);
+    }
+  }
+
+  const selectOnChange = (e) => {
+    setSelect(urlList[urlList.findIndex(x => x.id === e)]);
   }
 
   return (
     <div className="App">
-      <Row gutter={16}>
+      <Row gutter={16} justify={"space-around"}>
         <Col span={12}>
-          <Card>
-            左邊卡片
-            { urlList }
+          <Card >
+            <Select loading={isLoading || !urlInput.length} style={{width: "60%", marginBottom: 16}} onChange={selectOnChange}>
+              { urlList.map( (item) => (<Option value={item.id}><b>[{item.type}]</b> {item.name}</Option>) ) }
+            </Select>
+            <Row justify={"center"}>
+              <Input addonAfter={<EditTwoTone />} value={urlSelected.name} style={{width: "60%"}}/>
+            </Row>
           </Card>
         </Col>
         <Col span={12}>
