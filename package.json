@@ -9,7 +9,8 @@
     "antd": "^4.0.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
-    "react-scripts": "3.4.0"
+    "react-scripts": "3.4.0",
+    "use-clippy": "^1.0.6"
   },
   "scripts": {
     "start": "react-scripts start",
