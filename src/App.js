@@ -5,7 +5,9 @@ import { Row, Col } from 'antd';
 import { Input } from 'antd';
 import { Select } from 'antd';
 import { Layout } from 'antd';
-import { EditTwoTone, DownloadOutlined, UndoOutlined, SaveOutlined } from '@ant-design/icons'
+import { Modal } from 'antd';
+import { EditTwoTone, DeleteOutlined, DownloadOutlined, UndoOutlined, SaveOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import shortid from 'shortid';
 import useClippy from 'use-clippy';
 import './App.css';
@@ -14,10 +16,11 @@ function App() {
   const { TextArea } = Input;
   const { Option } = Select;
   const { Header, Footer, Sider, Content } = Layout;
+  const { confirm } = Modal;
 
   const [ urlInput, setUrlInput ] = useState('');
   const [ urlList, setUrlList ] = useState([]);
-  const [ urlSelected, setSelect ] = useState({});
+  const [ urlSelected, setUrlSelect ] = useState({});
 
   const [ clipboard, setClipboard ] = useClippy();
 
@@ -84,6 +87,7 @@ function App() {
         urls.push(urlItem);
       }
       setUrlList(urls);
+      setUrlSelect(urls[0]);
       console.log(urls);
       return urls;
     }
@@ -134,11 +138,12 @@ function App() {
   }
 
   const selectOnChange = (e) => {
-    setSelect(urlList[urlList.findIndex(x => x.id === e)]);
+    //console.log(e);
+    setUrlSelect(urlList[urlList.findIndex(x => x.id === e[1])]);
   }
 
   const editNameOnInput = (e) => {
-    setSelect({...urlSelected, name: e.target.value });
+    setUrlSelect({...urlSelected, name: e.target.value });
   }
 
   const editNameOnClick = () => {
@@ -152,14 +157,41 @@ function App() {
   </Tooltip>)
 
   const saveOnClick = () => {
+    editNameOnClick();
     const output = encodeB64(urlList);
     setUrlInput(output);
   }
 
   const redoOnClick = () => {
     const orignalName = urlName(urlList[urlList.findIndex(x => x.id === urlSelected.id)].raw);
-    setSelect({...urlSelected, name: orignalName });
+    setUrlSelect({...urlSelected, name: orignalName });
     setUrlList(urlList.map(item => item.id === urlSelected.id ? {...item, name: orignalName }: item));
+  }
+
+  const deleteOnClick = () => {
+    confirm({
+      title: '確定要刪除' + urlSelected.name + '?' ,
+      icon: <ExclamationCircleOutlined />,
+      content: '這項操作無法復原',
+      okText: '確定',
+      cancelText: '取消',
+      onOk() {
+        console.log(urlSelected);
+        performDelete(urlSelected);
+        //console.log('OK');
+      },
+      onCancel() {
+        //console.log('Cancel');
+      },
+    });
+  }
+
+  const performDelete = (obj) => {
+    const old_select_index = urlList.findIndex(x => x.id === obj.id);
+    // move pointer
+    setUrlSelect(urlList[(old_select_index+1)%urlList.length]);
+    //delete
+    setUrlList(urlList.filter(item => item.id !== obj.id));
   }
 
   return (
@@ -173,9 +205,15 @@ function App() {
         <Col span={12} >
           <Card>
             <Row gutter={[16,24]} justify={"center"}>
-              <Col span={16}><Select loading={isLoading || !urlInput.length} style={{width: "100%"}} onChange={selectOnChange}>
-              { urlList.map( (item) => (<Option key={item.id}><b>[{item.type}]</b> {item.name}</Option>) ) }
-            </Select></Col>
+              <Col span={14}>
+              <Select showSearch value={urlSelected.name} loading={isLoading || !urlInput.length} style={{width: "100%"}} onChange={selectOnChange}
+              filterOption={ (input,option) => option.children[2].toLowerCase().indexOf(input.toLowerCase()) >= 0  }>
+              { urlList.map( (item) => (<Option key={item.id} value={[item.name,item.id]}><b>[{item.type}]</b> {item.name}</Option>) ) }
+              </Select>
+            </Col>
+            <Col span={2}>
+            <Button type="primary" disabled={isLoading} icon={<DeleteOutlined />} onClick={deleteOnClick} danger/>
+            </Col>
             </Row>
             <Row gutter={[16,24]} justify={"center"}>
               <Col span={16}>
