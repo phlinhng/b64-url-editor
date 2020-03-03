@@ -11,15 +11,19 @@ import { EditTwoTone, DeleteOutlined, DownloadOutlined, UndoOutlined, SaveOutlin
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import shortid from 'shortid';
 import useClippy from 'use-clippy';
+import axios from 'axios';
 import './App.css';
 
 function App() {
   const { TextArea } = Input;
   const { Option } = Select;
-  const { Header, Footer, Sider, Content } = Layout;
+  const { Content, Footer } = Layout;
   const { confirm } = Modal;
 
-  const [ urlInput, setUrlInput ] = useState('');
+  const [ base64Input, setBase64Input ] = useState('');
+  const [ textInput, setTextInput ] = useState('');
+  const [ subscribeInput, setSubscribeInput ] = useState('');
+
   const [ urlList, setUrlList ] = useState([]);
   const [ urlSelected, setUrlSelect ] = useState({});
 
@@ -27,12 +31,18 @@ function App() {
 
   const [ isLoading, setLoading ] = useState(true);
 
+  const [ inputActive, setInputActive ] = useState('BASE64');
+
+  const supportedType = ['vmess','trojan','ss'];
+
+  const inputTabList = [{key: 'BASE64', tab: 'BASE64'}, {key: 'TEXT', tab: 'TEXT'}, {key: 'URL', tab: 'URL'}]
+
   // convert utf-8 encoded base64
   const Base64 = {
-    encode: function(s) {
+    encode: (s) => {
       return btoa(unescape(encodeURIComponent(s)));
     },
-    decode: function(s) {
+    decode: (s) => {
       return decodeURIComponent(escape(atob(s)));
     }
   };
@@ -83,14 +93,16 @@ function App() {
       const list = Base64.decode(text).split('\n');
       const urls = [];
       for (let item of list){
-        let urlItem = { 'type': urlType(item), 'name': urlName(item),
-        'json': urlJson(item), 'raw': item, 'id': shortid.generate() };
+        let urlItem = { type: urlType(item), name: urlName(item),
+        json: urlJson(item), raw: item, id: shortid.generate() };
         urls.push(urlItem);
       }
       setUrlList(urls);
       setUrlSelect(urls[0]);
       console.log(urls);
       return urls;
+    }else {
+      return text;
     }
   }
 
@@ -122,21 +134,68 @@ function App() {
     return Base64.encode(urlOutput);
   }
 
-  const inputOnChange = (e) => {
-    setUrlInput(e.target.value);
-    const urls = decodeB64(e.target.value);
-    if (urls){
-      setLoading(false);
+  const getUrlList = (text_b64) => {
+    try{
+      if(isValidB64(text_b64)) {
+        //function decodeB64 will decode base64 format urls and create a urlList array
+        const urls = decodeB64(text_b64);
+        if (urls && urls.filter(x => supportedType.includes(x.type)).length > 0){
+          setLoading(false);
+        }
+      }
+    }catch(err) {
+      console.log(err);
     }
-    
   }
 
-  const importFromClipboard = () => {
-    const pastedItem = clipboard;
-    setUrlInput(pastedItem);
-    const urls = decodeB64(pastedItem);
-    if (urls){
-      setLoading(false);
+  const inputOnChange = {
+    base64: (e) => {
+      setBase64Input(e.target.value);
+      if(isValidB64(e.target.value)) {
+        try{
+          setTextInput(Base64.decode(e.target.value));
+          getUrlList(e.target.value);
+        }catch(err){
+          console.error(err);
+        }
+      }
+    },
+    text: (e) => {
+      setTextInput(e.target.value);
+      const text_b64 = Base64.encode(e.target.value);
+      setBase64Input(text_b64);
+      getUrlList(text_b64);
+    },
+    subscribe: (e) => {
+      setSubscribeInput(e.target.value);
+      const key = 'fetching';
+      message.loading({ content: '導入訂閱鏈接中', key });
+      axios.get(e.target.value)
+      .then(res => {return res.data;})
+      .then(x => {setBase64Input(x); return Base64.decode(x);})
+      .then(x => {setTextInput(x); return Base64.encode(x)})
+      .then(x => {getUrlList(x);  message.success({ content: '導入成功！', key, duration: 2 }); })
+      .catch(err => console.error(err));
+    }
+  }
+
+  const importFromClipboard = {
+    base64: () => {
+      setBase64Input(clipboard);
+      if(isValidB64(clipboard)) {
+        try{
+          setTextInput(Base64.decode(clipboard));
+          getUrlList(clipboard);
+        }catch(err){
+          console.error(err);
+        }
+      }
+    },
+    text: () => {
+      setTextInput(clipboard);
+      const text_b64 = Base64.encode(clipboard);
+      setBase64Input(text_b64);
+      getUrlList(text_b64);
     }
   }
 
@@ -156,13 +215,13 @@ function App() {
 
   const editButton = (
     <Tooltip placement="bottom" title="修改" arrowPointAtCenter>
-    <Button type="link" icon={<EditTwoTone/>} size="small" onClick={editNameOnClick}/>
+    <Button type="link" icon={<EditTwoTone/>} size="small" disabled={isLoading || !base64Input.length} onClick={editNameOnClick}/>
   </Tooltip>)
 
   const saveOnClick = () => {
     editNameOnClick();
     const output = encodeB64(urlList);
-    setUrlInput(output);
+    setBase64Input(output);
   }
 
   const redoOnClick = () => {
@@ -204,6 +263,18 @@ function App() {
     message.success('刪除 ' + obj.name + ' 成功');
   }
 
+  const inputTabContent = {
+    BASE64: (<Row gutter={[0,16]}>
+      <Col span={24}><TextArea rows={4} autosize={false} onChange={inputOnChange.base64} value={base64Input}/></Col>
+      <Col span={24} style={{marginBottom: -21}}><Button type="primary" block onClick={importFromClipboard.base64}>從剪貼版導入</Button></Col></Row>),
+    TEXT: (<Row gutter={[0,16]}>
+      <Col span={24}><TextArea rows={4} autosize={false} onChange={inputOnChange.text} value={textInput}/></Col>
+      <Col span={24} style={{marginBottom: -21}}><Button type="primary" block onClick={importFromClipboard.text}>從剪貼版導入</Button></Col></Row>),
+    URL: (<Row gutter={[0,16]}>
+      <Col span={24}><TextArea rows={4} autosize={false} onChange={inputOnChange.subscribe} value={subscribeInput}/></Col>
+      <Col span={24} style={{marginBottom: -21}}><Button type="primary" block onClick={importFromClipboard.subscribe}>從剪貼版導入</Button></Col></Row>)
+  }
+
   return (
     <div className="App">
       <Layout>
@@ -213,24 +284,24 @@ function App() {
       <Content>
       <Row gutter={16} justify={"space-between"}>
         <Col span={12} >
-          <Card>
-            <Row gutter={[16,24]} justify={"center"} style={{height: 57}}>
+          <Card title="快速操作" bordered={false}>
+            <Row gutter={[16,24]} justify={"center"} style={{height: 60}}>
               <Col span={14}>
-              <Select showSearch value={urlList.length? urlSelected.name: ''} disabled={isLoading || !urlInput.length} style={{width: "100%"}} onChange={selectOnChange}
+              <Select showSearch value={urlList.length? urlSelected.name: ''} disabled={isLoading || !base64Input.length} style={{width: "100%"}} onChange={selectOnChange}
               filterOption={ (input,option) => option.children[2].toLowerCase().indexOf(input.toLowerCase()) >= 0  }>
               { urlList.map( (item) => (<Option key={item.id} value={[item.name,item.id]}><b>[{item.type}]</b> {item.name}</Option>) ) }
               </Select>
             </Col>
             <Col span={2}>
-            <Button type="primary" disabled={isLoading} icon={<DeleteOutlined />} onClick={deleteOnClick} danger/>
+            <Button type="primary" disabled={isLoading ||!base64Input.length} icon={<DeleteOutlined />} onClick={deleteOnClick} danger/>
             </Col>
             </Row>
             <Row gutter={[16,24]} justify={"center"}>
               <Col span={16}>
-              <Input addonAfter={editButton} value={urlSelected.name} onChange={editNameOnInput} onPressEnter={editNameOnClick}/>
+              <Input addonAfter={editButton} value={urlSelected.name} disabled={isLoading || !base64Input.length} onChange={editNameOnInput} onPressEnter={editNameOnClick}/>
               </Col>
             </Row>
-            <Row justify={"center"}>
+            <Row justify={"center"} style={{marginBottom: -8}}>
               <Col span={6}>
               <Button type="primary" icon={<UndoOutlined />} onClick={redoOnClick}>復原</Button>
               </Col>
@@ -244,10 +315,7 @@ function App() {
           </Card>
         </Col>
         <Col span={12}>
-          <Card>
-            <TextArea rows={4} onChange={inputOnChange} value={urlInput} style={{marginBottom: 16}}/>
-            <Button type="primary" block onClick={importFromClipboard}>從剪貼版導入</Button>
-          </Card>
+          <Card tabList={inputTabList} activeTabKey={inputActive} onTabChange={key => setInputActive(key)}>{inputTabContent[inputActive]}</Card>
         </Col>
       </Row>
       </Content>
