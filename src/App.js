@@ -175,7 +175,7 @@ function App() {
       .then(x => {setBase64Input(x); return Base64.decode(x);})
       .then(x => {setTextInput(x); return Base64.encode(x)})
       .then(x => {getUrlList(x);  message.success({ content: '導入成功！', key, duration: 2 }); })
-      .catch(err => {console.error(err); message.warning({ content: '導入失敗', key, duration: 2 }});
+      .catch(err => {console.error(err); message.warning({ content: '導入失敗', key, duration: 2 }); });
     }
   }
 
