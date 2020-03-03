@@ -4,6 +4,7 @@ import { Card } from 'antd';
 import { Row, Col } from 'antd';
 import { Input } from 'antd';
 import { Select } from 'antd';
+import { Layout } from 'antd';
 import { EditTwoTone, DownloadOutlined, UndoOutlined, SaveOutlined } from '@ant-design/icons'
 import shortid from 'shortid';
 import useClippy from 'use-clippy';
@@ -12,6 +13,7 @@ import './App.css';
 function App() {
   const { TextArea } = Input;
   const { Option } = Select;
+  const { Header, Footer, Sider, Content } = Layout;
 
   const [ urlInput, setUrlInput ] = useState('');
   const [ urlList, setUrlList ] = useState([]);
@@ -78,7 +80,7 @@ function App() {
       const urls = [];
       for (let item of list){
         let urlItem = { 'type': urlType(item), 'name': urlName(item),
-        'json': urlJson(item), 'id': shortid.generate() };
+        'json': urlJson(item), 'raw': item, 'id': shortid.generate() };
         urls.push(urlItem);
       }
       setUrlList(urls);
@@ -154,22 +156,35 @@ function App() {
     setUrlInput(output);
   }
 
+  const redoOnClick = () => {
+    const orignalName = urlName(urlList[urlList.findIndex(x => x.id === urlSelected.id)].raw);
+    setSelect({...urlSelected, name: orignalName });
+    setUrlList(urlList.map(item => item.id === urlSelected.id ? {...item, name: orignalName }: item));
+  }
+
   return (
     <div className="App">
-      <Row gutter={16} justify={"space-around"}>
-        <Col span={12}>
-          <Card >
-            <Row justify={"center"} style={{marginBottom: 16}}>
-            <Select loading={isLoading || !urlInput.length} style={{width: "60%"}} onChange={selectOnChange}>
+      <Layout>
+      <Row justify={"center"}>
+        <h2>Shawdowrockets v2RaNG 訂閱鏈接編輯器</h2>
+      </Row>
+      <Content>
+      <Row gutter={16} justify={"space-between"}>
+        <Col span={12} >
+          <Card>
+            <Row gutter={[16,24]} justify={"center"}>
+              <Col span={16}><Select loading={isLoading || !urlInput.length} style={{width: "100%"}} onChange={selectOnChange}>
               { urlList.map( (item) => (<Option key={item.id}><b>[{item.type}]</b> {item.name}</Option>) ) }
-            </Select>
+            </Select></Col>
             </Row>
-            <Row justify={"center"} style={{marginBottom: 16}}>
-              <Input addonAfter={editButton} value={urlSelected.name} onChange={editNameOnInput} style={{width: "60%"}}/>
+            <Row gutter={[16,24]} justify={"center"}>
+              <Col span={16}>
+              <Input addonAfter={editButton} value={urlSelected.name} onChange={editNameOnInput} onPressEnter={editNameOnClick}/>
+              </Col>
             </Row>
-            <Row gutter={24} justify={"center"}>
+            <Row gutter={[48,1]} justify={"center"}>
               <Col>
-              <Button type="primary" icon={<UndoOutlined />}>復原</Button>
+              <Button type="primary" icon={<UndoOutlined />} onClick={redoOnClick}>復原</Button>
               </Col>
               <Col>
               <Button type="primary" icon={<SaveOutlined />} onClick={saveOnClick}>保存</Button>
@@ -187,6 +202,13 @@ function App() {
           </Card>
         </Col>
       </Row>
+      </Content>
+      <Footer>
+      <Row justify={"center"} style={{marginTop: "50vh"}}>
+      Created by&nbsp; <a href="https:www.phlinhng.com">phlinhng</a>. &nbsp;All rights reserved.
+      </Row>
+      </Footer>
+      </Layout>
     </div>
   );
 }
