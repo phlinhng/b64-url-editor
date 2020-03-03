@@ -214,7 +214,7 @@ function App() {
       <Row gutter={16} justify={"space-between"}>
         <Col span={12} >
           <Card>
-            <Row gutter={[16,24]} justify={"center"}>
+            <Row gutter={[16,24]} justify={"center"} style={{height: 57}}>
               <Col span={14}>
               <Select showSearch value={urlList.length? urlSelected.name: ''} disabled={isLoading || !urlInput.length} style={{width: "100%"}} onChange={selectOnChange}
               filterOption={ (input,option) => option.children[2].toLowerCase().indexOf(input.toLowerCase()) >= 0  }>
@@ -230,14 +230,14 @@ function App() {
               <Input addonAfter={editButton} value={urlSelected.name} onChange={editNameOnInput} onPressEnter={editNameOnClick}/>
               </Col>
             </Row>
-            <Row gutter={[48,1]} justify={"center"}>
-              <Col>
+            <Row justify={"center"}>
+              <Col span={6}>
               <Button type="primary" icon={<UndoOutlined />} onClick={redoOnClick}>復原</Button>
               </Col>
-              <Col>
+              <Col span={6}>
               <Button type="primary" icon={<SaveOutlined />} onClick={saveOnClick}>保存</Button>
               </Col>
-              <Col>
+              <Col span={6}>
               <Button type="primary" icon={<DownloadOutlined />}>匯出</Button>
               </Col>
             </Row>
@@ -252,7 +252,7 @@ function App() {
       </Row>
       </Content>
       <Footer>
-      <Row justify={"center"} style={{marginTop: "50vh"}}>
+      <Row justify={"center"}>
       Created by&nbsp; <a href="https:www.phlinhng.com">phlinhng</a>. &nbsp;All rights reserved.
       </Row>
       </Footer>
