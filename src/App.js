@@ -176,7 +176,7 @@ function App() {
       okText: '確定',
       cancelText: '取消',
       onOk() {
-        console.log(urlSelected);
+        //console.log(urlSelected);
         performDelete(urlSelected);
         //console.log('OK');
       },
@@ -189,9 +189,15 @@ function App() {
   const performDelete = (obj) => {
     const old_select_index = urlList.findIndex(x => x.id === obj.id);
     // move pointer
-    setUrlSelect(urlList[(old_select_index+1)%urlList.length]);
+    if(urlList.filter(item => item.id !== obj.id).length){
+      setUrlSelect(urlList[(old_select_index+1)%urlList.length]);
+    }else {
+      setUrlSelect({});
+    }
+    
     //delete
     setUrlList(urlList.filter(item => item.id !== obj.id));
+ 
   }
 
   return (
@@ -206,7 +212,7 @@ function App() {
           <Card>
             <Row gutter={[16,24]} justify={"center"}>
               <Col span={14}>
-              <Select showSearch value={urlSelected.name} loading={isLoading || !urlInput.length} style={{width: "100%"}} onChange={selectOnChange}
+              <Select showSearch value={urlList.length? urlSelected.name: ''} loading={isLoading || !urlInput.length} style={{width: "100%"}} onChange={selectOnChange}
               filterOption={ (input,option) => option.children[2].toLowerCase().indexOf(input.toLowerCase()) >= 0  }>
               { urlList.map( (item) => (<Option key={item.id} value={[item.name,item.id]}><b>[{item.type}]</b> {item.name}</Option>) ) }
               </Select>
