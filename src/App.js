@@ -6,6 +6,7 @@ import { Input } from 'antd';
 import { Select } from 'antd';
 import { Layout } from 'antd';
 import { Modal } from 'antd';
+import { message } from 'antd';
 import { EditTwoTone, DeleteOutlined, DownloadOutlined, UndoOutlined, SaveOutlined } from '@ant-design/icons';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import shortid from 'shortid';
@@ -116,6 +117,8 @@ function App() {
       }
     }
     console.log(Base64.encode(urlOutput));
+    setClipboard(Base64.encode(urlOutput));
+    message.success('新鏈接己生成');
     return Base64.encode(urlOutput);
   }
 
@@ -197,7 +200,8 @@ function App() {
     
     //delete
     setUrlList(urlList.filter(item => item.id !== obj.id));
- 
+
+    message.success('刪除 ' + obj.name + ' 成功');
   }
 
   return (
@@ -212,7 +216,7 @@ function App() {
           <Card>
             <Row gutter={[16,24]} justify={"center"}>
               <Col span={14}>
-              <Select showSearch value={urlList.length? urlSelected.name: ''} loading={isLoading || !urlInput.length} style={{width: "100%"}} onChange={selectOnChange}
+              <Select showSearch value={urlList.length? urlSelected.name: ''} disabled={isLoading || !urlInput.length} style={{width: "100%"}} onChange={selectOnChange}
               filterOption={ (input,option) => option.children[2].toLowerCase().indexOf(input.toLowerCase()) >= 0  }>
               { urlList.map( (item) => (<Option key={item.id} value={[item.name,item.id]}><b>[{item.type}]</b> {item.name}</Option>) ) }
               </Select>
