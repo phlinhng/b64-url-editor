@@ -13,6 +13,7 @@ import shortid from 'shortid';
 import useClippy from 'use-clippy';
 import axios from 'axios';
 import './App.css';
+import { Logo } from './img';
 
 function App() {
   const { TextArea } = Input;
@@ -263,6 +264,16 @@ function App() {
     message.success('刪除 ' + obj.name + ' 成功');
   }
 
+  const getLogo = (type) => {
+    const logo = {
+      vmess: (<img src={Logo.v2ray} alt="" class="logo-wrap"></img>),
+      trojan: (<img src={Logo.trojan} alt="" class="logo-wrap"></img>),
+      ss: (<img src={Logo.ss} alt="" class="logo-wrap"></img>)
+    };
+    console.log(logo[type]);
+    return logo[type];
+  }
+
   const inputTabContent = {
     BASE64: (<Row gutter={[0,16]}>
       <Col span={24}><TextArea rows={4} autosize={false} onChange={inputOnChange.base64} value={base64Input}/></Col>
@@ -279,42 +290,42 @@ function App() {
     <div className="App">
       <Layout>
       <Row justify={"center"}>
-        <h2>Shawdowrockets v2RaNG 訂閱鏈接編輯器</h2>
+        <h2>Shawdowrockets 訂閱鏈接編輯器</h2>
       </Row>
       <Content>
-      <Row gutter={16} justify={"space-between"}>
-        <Col span={12} >
+      <Row gutter={[16,16]} justify={"space-between"}>
+        <Col xs={24} sm={24} md={12}>
           <Card title="快速操作" bordered={false}>
             <Row gutter={[16,24]} justify={"center"} style={{height: 60}}>
-              <Col span={14}>
+              <Col xs={16} sm={16} md={14}>
               <Select showSearch value={urlList.length? urlSelected.name: ''} disabled={isLoading || !base64Input.length} style={{width: "100%"}} onChange={selectOnChange}
               filterOption={ (input,option) => option.children[2].toLowerCase().indexOf(input.toLowerCase()) >= 0  }>
-              { urlList.map( (item) => (<Option key={item.id} value={[item.name,item.id]}><b>[{item.type}]</b> {item.name}</Option>) ) }
+              { urlList.map( (item) => (<Option key={item.id} value={[item.name,item.id]}>{getLogo(item.type)} {item.name}</Option>) ) }
               </Select>
             </Col>
-            <Col span={2}>
+            <Col xs={4} sm={4} md={2}>
             <Button type="primary" disabled={isLoading ||!base64Input.length} icon={<DeleteOutlined />} onClick={deleteOnClick} danger/>
             </Col>
             </Row>
             <Row gutter={[16,24]} justify={"center"}>
-              <Col span={16}>
+              <Col xs={20} sm={20} md={16}>
               <Input addonAfter={editButton} value={urlSelected.name} disabled={isLoading || !base64Input.length} onChange={editNameOnInput} onPressEnter={editNameOnClick}/>
               </Col>
             </Row>
-            <Row justify={"center"} style={{marginBottom: -8}}>
-              <Col span={6}>
+            <Row gutter={16} justify={"center"} style={{marginBottom: -8}}>
+              <Col xs={12} sm={12} md={6}>
               <Button type="primary" icon={<UndoOutlined />} onClick={redoOnClick}>復原</Button>
               </Col>
-              <Col span={6}>
+              <Col xs={12} sm={12} md={6}>
               <Button type="primary" icon={<SaveOutlined />} onClick={saveOnClick}>保存</Button>
               </Col>
-              <Col span={6}>
+              <Col xs={0} sm={0} md={6}>
               <Button type="primary" icon={<DownloadOutlined />}>匯出</Button>
               </Col>
             </Row>
           </Card>
         </Col>
-        <Col span={12}>
+        <Col xs={24} sm={24} md={12}>
           <Card tabList={inputTabList} activeTabKey={inputActive} onTabChange={key => setInputActive(key)}>{inputTabContent[inputActive]}</Card>
         </Col>
       </Row>
