@@ -7,8 +7,8 @@ import { Select } from 'antd';
 import { Layout } from 'antd';
 import { Modal } from 'antd';
 import { message } from 'antd';
-import { EditTwoTone, DeleteOutlined, DownloadOutlined, UndoOutlined, SaveOutlined } from '@ant-design/icons';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { DeleteOutlined, DownloadOutlined, UndoOutlined, SaveOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, QuestionCircleTwoTone } from '@ant-design/icons';
 import shortid from 'shortid';
 import useClippy from 'use-clippy';
 import axios from 'axios';
@@ -65,7 +65,7 @@ function App() {
       return JSON.parse(Base64.decode(text.replace('vmess://','')));
     }else if(urlType(text) === 'ss'){
       const starIndex = text.search('#');
-      return Base64.decode( text.slice(5,starIndex))
+      return Base64.decode( text.slice(5,starIndex) );
       // chacha20-ietf:password@mydomain.com:8888
     }else {
       return text
@@ -98,9 +98,7 @@ function App() {
         json: urlJson(item), raw: item, id: shortid.generate() };
         urls.push(urlItem);
       }
-      setUrlList(urls);
-      setUrlSelect(urls[0]);
-      console.log(urls);
+      console.log('decodeB64',urls);
       return urls;
     }else {
       return text;
@@ -108,7 +106,7 @@ function App() {
   }
 
   const encodeB64 = (arr) => {
-    console.log(arr);
+    //console.log('encodeB64',arr);
     let urlOutput = '';
     for (let i=0; i<arr.length; ++i){
       const url = arr[i];
@@ -121,7 +119,7 @@ function App() {
         urlOutput += url.json.slice(0,starIndex) + '#' + encodeURIComponent(url.name);
       }else if(url.type === 'ss'){
         const starIndex = url.json.search('#')
-        urlOutput += 'ss://' + url.json.slice(0,starIndex) + '#' + encodeURIComponent(url.name);
+        urlOutput += 'ss://' + Base64.encode(url.json.slice(0,starIndex)) + '#' + encodeURIComponent(url.name);
       }else {
         continue;
       }
@@ -129,9 +127,9 @@ function App() {
         urlOutput += '\n';
       }
     }
-    console.log(Base64.encode(urlOutput));
+    console.log(urlOutput.split('\n'));
+    //console.log(Base64.encode(urlOutput));
     setClipboard(Base64.encode(urlOutput));
-    message.success('新鏈接己生成');
     return Base64.encode(urlOutput);
   }
 
@@ -139,8 +137,17 @@ function App() {
     try{
       if(isValidB64(text_b64)) {
         //function decodeB64 will decode base64 format urls and create a urlList array
-        const urls = decodeB64(text_b64);
+        //decodeB64(text_b64) is an array from original base64
+        //urls is decodeB64(text_b64) skipping empty liines
+        const urls = decodeB64(text_b64).filter(x => x.raw !== "");
+        if (urls.length <  decodeB64(text_b64).length){
+          setBase64Input(encodeB64(urls)); // update base64 input field if any empty line was skipped
+          setTextInput(Base64.decode(encodeB64(urls)));
+        }
         if (urls && urls.filter(x => supportedType.includes(x.type)).length > 0){
+          setUrlList(urls);
+          setUrlSelect(urls[0]);
+          console.log('getUrlList',urls);
           setLoading(false);
         }
       }
@@ -207,22 +214,19 @@ function App() {
 
   const editNameOnInput = (e) => {
     setUrlSelect({...urlSelected, name: e.target.value });
+    setUrlList(urlList.map(item => item.id === urlSelected.id ? {...item, name: e.target.value }: item));
   }
 
-  const editNameOnClick = () => {
+  const editNameOnChange = () => {
     // Mapping the old array into a new one, swapping what you want to change for an updated item along the way.
     setUrlList(urlList.map(item => item.id === urlSelected.id ? {...item, name: urlSelected.name }: item));
   }
 
-  const editButton = (
-    <Tooltip placement="bottom" title="修改" arrowPointAtCenter>
-    <Button type="link" icon={<EditTwoTone/>} size="small" disabled={isLoading || !base64Input.length} onClick={editNameOnClick}/>
-  </Tooltip>)
-
   const saveOnClick = () => {
-    editNameOnClick();
+    editNameOnChange();
     const output = encodeB64(urlList);
     setBase64Input(output);
+    message.success('新鏈接己複製');
   }
 
   const redoOnClick = () => {
@@ -270,8 +274,8 @@ function App() {
       trojan: (<img src={Logo.trojan} alt="" class="logo-wrap"></img>),
       ss: (<img src={Logo.ss} alt="" class="logo-wrap"></img>)
     };
-    console.log(logo[type]);
-    return logo[type];
+    //console.log(logo[type]);
+    return logo.hasOwnProperty(type)? logo[type]:(<QuestionCircleTwoTone />)
   }
 
   const inputTabContent = {
@@ -309,7 +313,7 @@ function App() {
             </Row>
             <Row gutter={[16,24]} justify={"center"}>
               <Col xs={20} sm={20} md={16}>
-              <Input addonAfter={editButton} value={urlSelected.name} disabled={isLoading || !base64Input.length} onChange={editNameOnInput} onPressEnter={editNameOnClick}/>
+              <Input addonAfter={urlSelected? getLogo(urlSelected.type):(<QuestionCircleTwoTone />)} value={urlSelected? urlSelected.name:''} disabled={isLoading || !base64Input.length} onChange={editNameOnInput} onPressEnter={editNameOnChange}/>
               </Col>
             </Row>
             <Row gutter={16} justify={"center"} style={{marginBottom: -8}}>
