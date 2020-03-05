@@ -200,7 +200,7 @@ function App() {
         // if equals, mean that input text have not been transferred to urls array
         console.log(text_b64);
         if(getUrlList(text_b64) !== text_b64) { message.success('解析成功'); }
-      }else if(/(http|https).*/.test(content)){
+      }else if(/^(http|https).*/.test(content)){
         const key = 'fetching';
         message.loading({ content: '導入訂閱鏈接中', key });
         axios.get(e.target.value)
@@ -448,9 +448,9 @@ function App() {
   return (
     <div className="App">
       <Layout>
-        <Row justify={"start"} align={"middle"}>
-          <Col xs={24} sm={24} md={6}><h2>Shawdowrockets 訂閱鏈接編輯器</h2></Col>
-          <Col xs={0} sm={0} md={6} style={{marginLeft: -32}}><h3>支持 {supportedType.map( (x,index) => index < supportedType.length-1? x+', ':x)} 鏈接編輯</h3></Col>
+        <Row justify="start" align={"middle"} style={{textAlign: "left"}}>
+          <h2>Shawdowrockets 訂閱鏈接編輯器</h2>
+          <Col xs={0} sm={0} md={8} style={{marginLeft: 8}}><h3>支持 {supportedType.map( (x,index) => index < supportedType.length-1? x+', ':x)} 鏈接編輯</h3></Col>
         </Row>
         <Content>
         <Row gutter={[16,16]} justify={"space-between"} type="flex">
@@ -465,7 +465,7 @@ function App() {
         <Footer style={{position: "sticky", bottom: 0}}>
         <Row>
           <Col span={24}>
-          Created by {<a href="https:www.phlinhng.com">phlinhng</a>}. All rights reserved.
+          Created by {<a href="https://www.phlinhng.com">phlinhng</a>}. All rights reserved.
         </Col></Row>
         </Footer>
       </Layout>
