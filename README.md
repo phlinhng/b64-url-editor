@@ -1,68 +1,31 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# BASE64格式訂閱連結編輯器 (小火箭訂閱鏈接編輯器)
+一個可以生成和修改ShadowRocket (iOS)、v2rayNG (Android)訂閱連結的工具。
 
-## Available Scripts
+# 支援協議
++ v2Ray (`vmess://...`)：支持TCP、WS、KCP三種連接方式
++ Trojan-GFW (`trojan://...`)
++ Shadowsocks (`ss://...`)：支持所有加密方式
 
-In the project directory, you can run:
+# 功能
+1. 導入訂閱連結與節點列表
+2. 導入BASE64密文
+3. 修改節點名稱、服務器地址、加密方式(ss)、密碼(ss,trojan)、連接方式(v2ray)、TLS(v2ray)、WS域名與路徑(v2ray)等
+4. 刪除節點
 
-### `yarn start`
+# 用法
+## 手動導入訂閱鏈接
+只能導入一個訂閱鏈接
+## 手動添加節點列表
+支持添加多個節點，不同節點間使用換行(`\n`)或分號(`;`)隔開
+## 手動添加BASE64密文
+## URL Query導入訂閱鏈接 (under maintainance)
+> https://www.phlinhng.com/b64-url-editor/?sub=[your subscrption links]
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
-
-### `yarn test`
-
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `yarn build`
-
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+# todo
++ [ ] 新增節點
++ [ ] 生成QR Code
++ [ ] 修好並完善URL Query
++ [ ] 生成訂閱鏈接 (需要api與服務器)
++ [ ] 調換節點順序
++ [ ] 完成README.md
++ [ ] 寫一篇博客文章

@@ -14,8 +14,8 @@ import queryString from 'query-string';
 function App() {
   useEffect ( () => {
     if(window.location.search){
-      const parsed = queryString.parse(window.location.search);
-      inputOnChange.subscribe({target:{value: parsed.sub }});
+      //const parsed = queryString.parse(window.location.search);
+      //inputOnChange.subscribe({target:{value: parsed.sub }});
     }
   });
 
