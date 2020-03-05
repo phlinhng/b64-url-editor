@@ -421,7 +421,7 @@ function App() {
     </Col>
     </Row>),
     ss: (<Row gutter={[16,24]}>
-      <Col xs={24} sm={24} md={12} > {commonContent.select} </Col>
+      <Col xs={24} sm={24} md={12}> {commonContent.select} </Col>
       <Col xs={20} sm={20} md={10}> {commonContent.remark} </Col>
       <Col xs={4} sm={4} md={2}> {commonContent.deleteIcon} </Col>
       <Col xs={24} sm={24} md={12}> {commonContent.serverAddress} </Col>
@@ -438,7 +438,7 @@ function App() {
       </Row>
     ),
     trojan: (<Row gutter={[16,24]}>
-      <Col xs={24} sm={24} md={12} > {commonContent.select} </Col>
+      <Col xs={24} sm={24} md={12}> {commonContent.select} </Col>
       <Col xs={20} sm={20} md={10}> {commonContent.remark} </Col>
       <Col xs={4} sm={4} md={2}> {commonContent.deleteIcon} </Col>
       <Col xs={24} sm={24} md={12}> {commonContent.serverAddress} </Col>
@@ -453,12 +453,12 @@ function App() {
   const operateTabContent = {
     fastEdit: (
     <Row gutter={[16,24]} justify={"center"}>
-      <Col xs={16} sm={16} md={14} style={{height: 60}}> {commonContent.select} </Col>
+      <Col xs={16} sm={16} md={14} style={{height: 48}}> {commonContent.select} </Col>
       <Col xs={4} sm={4} md={2}> {commonContent.deleteIcon} </Col>
       <Col xs={24} sm={24} md={16}> {commonContent.remark} </Col>
       <Col xs={24} sm={24} md={16}> {commonContent.serverAddress} </Col>
     </Row>),
-    detailedEdit: ( urlList[urlPointer]? (supportedType.includes(urlList[urlPointer].type)? detailedContent[urlList[urlPointer].type]:'no data'):(<Skeleton/>)),
+    detailedEdit: ( urlList[urlPointer]? (supportedType.includes(urlList[urlPointer].type)? detailedContent[urlList[urlPointer].type]:<Skeleton/>):(<Skeleton/>)),
     buttons : ( <div><Badge count={hasEdited} dot><Button type="primary" icon={<CheckOutlined />} disabled={isLoading || !base64Input.length} onClick={saveOnClick}>生成</Button></Badge></div>)
   }
 
