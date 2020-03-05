@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Input, Select, Radio, Switch } from 'antd';
 import { Layout, Row, Col, Card } from 'antd';
 import { Badge, Modal, message, Skeleton } from 'antd';
@@ -9,8 +9,16 @@ import useClippy from 'use-clippy';
 import axios from 'axios';
 import './App.css';
 import { Logo } from './img';
+import queryString from 'query-string';
 
 function App() {
+  useEffect ( () => {
+    if(window.location.search){
+      const parsed = queryString.parse(window.location.search);
+      inputOnChange.subscribe({target:{value: parsed.sub }});
+    }
+  });
+
   const { TextArea } = Input;
   const { Option } = Select;
   const { Content, Footer } = Layout;
@@ -475,7 +483,8 @@ function App() {
         <Row>
           <Col span={24}>
           Created by {<a href="https://www.phlinhng.com">phlinhng</a>}. All rights reserved.
-        </Col></Row>
+        </Col>
+        </Row>
         </Footer>
       </Layout>
     </div>
