@@ -80,7 +80,7 @@ function App() {
     unsupported: ( (text) => {
       return { type: urlType(text), json:{}, raw: text, id: shortid.generate() };
     }),
-    isText: ( (text) => ( text.split('\n').every( x => validPrefix.test(x) ) ))
+    isText: ( (text) => ( text.split(/[;\n]+/).every( x => validPrefix.test(x) ) ))
   }
 
   const json2text = {
@@ -105,7 +105,7 @@ function App() {
 
   const decodeB64 = (text) => {
     if(text.length && isValidB64(text)){
-      const url_list = Base64.decode(text).split('\n');
+      const url_list = Base64.decode(text).split(/[;\n]+/);
       const urls = url_list.map(x => text2json[urlType(x)](x));
       console.log('decodeB64',urls);
       return urls;
@@ -359,11 +359,11 @@ function App() {
     filterOption={ (input,option) => option.children[2].toLowerCase().indexOf(input.toLowerCase()) >= 0  }>
     { urlList.filter(x => supportedType.includes(x.type)).map( (item) => (<Option key={item.id} value={[item.json.ps,item.id]}>{getLogo(item.type)} {item.json.ps}</Option>) ) }
     </Select>),
-    remark: (<Input placeholder="節點名稱(Remark)" addonAfter={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('type')? ( getLogo(urlList[urlPointer].type) ):(<QuestionCircleTwoTone />)}
+    remark: (<Input placeholder="節點名稱 (Remark)" addonAfter={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('type')? ( getLogo(urlList[urlPointer].type) ):(<QuestionCircleTwoTone />)}
     value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.ps:''} disabled={isLoading || !base64Input.length} onChange={editOnChange.ps} onPressEnter={editOnChange.ps}/>),
     deleteIcon: (<Button type="primary" disabled={isLoading ||!base64Input.length} icon={<DeleteOutlined />} onClick={deleteOnClick} danger/>),
     serverAddress: (<InputGroup compact>
-    <Input style={{width: "75%", textAlign:"left"}} disabled={isLoading || !base64Input.length} placeholder="服務器地址(Address)" onChange={editOnChange.address} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.add:''} />
+    <Input style={{width: "75%", textAlign:"left"}} disabled={isLoading || !base64Input.length} placeholder="服務器地址 (Address)" onChange={editOnChange.address} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.add:''} />
     <Input style={{width: "25%"}} disabled={isLoading || !base64Input.length} placeholder="port" onChange={editOnChange.port} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.port:''} />
     </InputGroup>)
   }
@@ -395,7 +395,7 @@ function App() {
       sm={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? (urlList[urlPointer].json.net === 'ws'? 24:0):0}
       md={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? (urlList[urlPointer].json.net === 'ws'? 12:0):0}>
       <InputGroup compact>
-      <Input style={{width: "75%"}} placeholder="域名(Host)" onChange={editOnChange.ws.host} value={urlList[urlPointer]? (urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.host:''):''} />
+      <Input style={{width: "75%"}} placeholder="域名 (Host)" onChange={editOnChange.ws.host} value={urlList[urlPointer]? (urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.host:''):''} />
       <Input style={{width: "25%"}} placeholder="path" onChange={editOnChange.ws.path} value={urlList[urlPointer]? (urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.path:''):''} />
       </InputGroup>
       </Col>
@@ -419,13 +419,13 @@ function App() {
       <Col xs={24} sm={24} md={12}> {commonContent.serverAddress} </Col>
       <Col xs={24} sm={24} md={12}></Col>
       <Col xs={24} sm={24} md={12}>
-        <Select showSearch style={{width: "100%"}} placeholder="加密方式(Method)" onChange={editOnChange.ssMethod} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.id:''}
+        <Select showSearch style={{width: "100%"}} placeholder="加密方式 (Method)" onChange={editOnChange.ssMethod} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.id:''}
         filterOption={ (input,option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0  }>
           { ssMethod.map( x => (<Option key={x}>{x}</Option>) )}
         </Select>
       </Col>
       <Col xs={24} sm={24} md={12}>
-        <Input.Password placeholder="密碼(password)" onChange={editOnChange.aid} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.aid:''} />
+        <Input.Password placeholder="密碼 (Password)" onChange={editOnChange.aid} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.aid:''} />
       </Col>
       </Row>
     ),
@@ -435,7 +435,7 @@ function App() {
       <Col xs={4} sm={4} md={2}> {commonContent.deleteIcon} </Col>
       <Col xs={24} sm={24} md={12}> {commonContent.serverAddress} </Col>
       <Col xs={24} sm={24} md={12}>
-        <Input.Password placeholder="密碼(password)" onChange={editOnChange.aid} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.aid:''} />
+        <Input.Password placeholder="密碼 (Password)" onChange={editOnChange.aid} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.aid:''} />
       </Col>
       </Row>
     )
