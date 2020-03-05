@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
-import { Button, Input, Select, Radio, Switch, } from 'antd';
+import { Button, Input, Select, Radio, Switch } from 'antd';
 import { Layout, Row, Col, Card } from 'antd';
-import { Modal, message } from 'antd';
-import { DeleteOutlined, DownloadOutlined, UndoOutlined, SaveOutlined } from '@ant-design/icons';
+import { Modal, message, Skeleton } from 'antd';
+import { CheckOutlined, DeleteOutlined, DownloadOutlined, SaveOutlined, UndoOutlined  } from '@ant-design/icons';
 import { ExclamationCircleOutlined, QuestionCircleTwoTone } from '@ant-design/icons';
 import shortid from 'shortid';
 import useClippy from 'use-clippy';
@@ -28,10 +28,10 @@ function App() {
 
   const [ isLoading, setLoading ] = useState(true);
 
-  const supportedType = ['vmess','trojan','ss'];
+  const supportedType = ['ss','vmess','trojan'];
 
-  const inputTabList = [{key: 'URL', tab: 'URL'}, {key: 'TEXT', tab: 'TEXT'}, {key: 'BASE64', tab: 'BASE64'} ];
-  const [ inputActive, setInputActive ] = useState('URL');
+  const inputTabList = [{key: 'API', tab: 'API'}, {key: 'TEXT', tab: 'URL'}, {key: 'BASE64', tab: 'BASE64'} ];
+  const [ inputActive, setInputActive ] = useState('API');
   
   const operateTabList = [{key: 'fastEdit', tab: '快速操作'}, {key: 'detailedEdit', tab: '詳細編輯'}];
   const [ operateActive, setOperateActive ] = useState('detailedEdit');
@@ -155,6 +155,19 @@ function App() {
     }
   }
 
+  const isText = (content) => {
+    const arr = content.split('\n');
+    const validPrefix = /^(vmess|ss|trojan).*/;
+    for(let item of arr){
+      if(validPrefix.test(item)) {
+        continue;
+      }else {
+        return false;
+      }
+    }
+    return true;
+  }
+
   const inputOnChange = {
     base64: (e) => {
       setBase64Input(e.target.value);
@@ -177,16 +190,27 @@ function App() {
       if(getUrlList(text_b64) !== text_b64) { message.success('解析成功'); }
     },
     subscribe: (e) => {
-      setSubscribeInput(e.target.value);
-      const key = 'fetching';
-      message.loading({ content: '導入訂閱鏈接中', key });
-      axios.get(e.target.value)
-      .then(res => {return res.data;})
-      .then(x => {setBase64Input(x); return Base64.decode(x);})
-      .then(x => {setTextInput(x); return Base64.encode(x);})
-      .then(x => {return getUrlList(x);})
-      .then(x => {message.success({ content: '導入 ' + x.length + '個節點' + ' 成功', key, duration: 2 }); })
-      .catch(err => {console.error(err); message.warning({ content: '導入失敗', key, duration: 2 }); });
+      const content = e.target.value;
+      setSubscribeInput(content);
+      if(isText(content)) {
+        setTextInput(content);
+        if(e.target.value === '') { return; }
+        const text_b64 = Base64.encode(content);
+        setBase64Input(text_b64);
+        // if equals, mean that input text have not been transferred to urls array
+        console.log(text_b64);
+        if(getUrlList(text_b64) !== text_b64) { message.success('解析成功'); }
+      }else if(/(http|https).*/.test(content)){
+        const key = 'fetching';
+        message.loading({ content: '導入訂閱鏈接中', key });
+        axios.get(e.target.value)
+        .then(res => {return res.data;})
+        .then(x => {setBase64Input(x); return Base64.decode(x);})
+        .then(x => {setTextInput(x); return Base64.encode(x);})
+        .then(x => {return getUrlList(x);})
+      . then(x => {message.success({ content: '導入 ' + x.length + '個節點' + ' 成功', key, duration: 2 }); })
+        .catch(err => {console.error(err); message.warning({ content: '導入失敗', key, duration: 2 }); });
+      }
     }
   }
 
@@ -210,13 +234,12 @@ function App() {
     }
   }
 
-  const selectOnChange = (e) => {
+  const selectOnChange = (val) => {
     //console.log(e);
-    setUrlSelect(urlList.findIndex(x => x.id === e[1]));
+    setUrlSelect(urlList.findIndex(x => x.id === val[1]));
   }
 
   const saveOnClick = () => {
-    editOnChange.name();
     const output = encodeB64(urlList);
     setBase64Input(output);
     setClipboard(output);
@@ -330,16 +353,16 @@ function App() {
         }
       })
     },
-    type: ((e) => {
+    type: ((val) => {
       const selectedId = urlList[urlPointer].id;
       if(urlList[urlPointer].json.net === 'kcp'){
-        setUrlList(urlList.map(item => item.id === selectedId ? {...item, json: {...item.json, type: e.target.value} }: item));
+        setUrlList(urlList.map(item => item.id === selectedId ? {...item, json: {...item.json, type: val} }: item));
       }
     }),
   }
 
   const inputTabContent = {
-    URL: (<Row gutter={[0,16]}>
+    API: (<Row gutter={[0,16]}>
       <Col span={24}><TextArea rows={4} autosize={false} placeholder={'輸入訂閱網址'} onChange={inputOnChange.subscribe} value={subscribeInput}/></Col>
       <Col span={24} style={{marginBottom: -21}}><Button type="primary" block onClick={importFromClipboard.subscribe}>從剪貼版導入</Button></Col></Row>),
     TEXT: (<Row gutter={[0,16]}>
@@ -417,38 +440,34 @@ function App() {
       <Col xs={16} sm={16} md={14} style={{height: 60}}> {commonContent.select} </Col>
       <Col xs={4} sm={4} md={2}> {commonContent.deleteIcon} </Col>
       <Col xs={24} sm={24} md={16}> {commonContent.remark} </Col>
-      <Col xs={24} sm={24} md={16} style={{marginBottom: -32}}>
-      <div style={{display: "flex", "justifyContent": "space-between"}}>
-      <Button type="primary" icon={<UndoOutlined />} onClick={redoOnClick}>復原</Button>
-      <Button type="primary" icon={<SaveOutlined />} onClick={saveOnClick}>保存</Button>
-      <Button type="primary" icon={<DownloadOutlined />}>匯出</Button>
-      </div>
-      </Col>
     </Row>),
-    detailedEdit: ( urlList[urlPointer]? (urlList[urlPointer].type === 'vmess'? detailedContent['vmess']:'目前僅支持vmess協議'):'no data')
+    detailedEdit: ( urlList[urlPointer]? (urlList[urlPointer].type === 'vmess'? detailedContent['vmess']:'目前僅支持vmess協議'):(<Skeleton/>)),
+    buttons : ( <div><Button type="primary" icon={<CheckOutlined />} disabled={isLoading || !base64Input.length} onClick={saveOnClick}>生成</Button></div>)
   }
 
   return (
     <div className="App">
       <Layout>
-      <Row justify={"start"}>
-        <h2 style={{padding: "0 8px"}}>Shawdowrockets 訂閱鏈接編輯器</h2>
-      </Row>
-      <Content>
-      <Row gutter={[16,16]} justify={"space-between"}>
-        <Col xs={24} sm={24} md={12}>
-        <Card tabList={operateTabList} activeTabKey={operateActive} onTabChange={key => setOperateActive(key)}>{operateTabContent[operateActive]}</Card>
-        </Col>
-        <Col xs={24} sm={24} md={12}>
-          <Card tabList={inputTabList} activeTabKey={inputActive} onTabChange={key => setInputActive(key)}>{inputTabContent[inputActive]}</Card>
-        </Col>
-      </Row>
-      </Content>
-      <Footer>
-      <Row justify={"center"}><Col span={24}>
-      Created by&nbsp; <a href="https:www.phlinhng.com">phlinhng</a>. &nbsp;All rights reserved.
-      </Col></Row>
-      </Footer>
+        <Row justify={"start"} align={"middle"}>
+          <Col xs={24} sm={24} md={6}><h2>Shawdowrockets 訂閱鏈接編輯器</h2></Col>
+          <Col xs={0} sm={0} md={6} style={{marginLeft: -32}}><h3>支持 {supportedType.map( (x,index) => index < supportedType.length-1? x+', ':x)} 鏈接編輯</h3></Col>
+        </Row>
+        <Content>
+        <Row gutter={[16,16]} justify={"space-between"} type="flex">
+          <Col xs={24} sm={24} md={12}>
+          <Card className="card" tabList={operateTabList} tabBarExtraContent={operateTabContent.buttons} activeTabKey={operateActive} onTabChange={key => setOperateActive(key)}>{operateTabContent[operateActive]}</Card>
+          </Col>
+          <Col xs={24} sm={24} md={12}>
+            <Card className="card" tabList={inputTabList} activeTabKey={inputActive} onTabChange={key => setInputActive(key)}>{inputTabContent[inputActive]}</Card>
+          </Col>
+        </Row>
+        </Content>
+        <Footer style={{position: "sticky", bottom: 0}}>
+        <Row>
+          <Col span={24}>
+          Created by {<a href="https:www.phlinhng.com">phlinhng</a>}. All rights reserved.
+        </Col></Row>
+        </Footer>
       </Layout>
     </div>
   );

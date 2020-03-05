@@ -28,3 +28,7 @@ body {
   height: 1.2em;
   vertical-align: sub;
 }
+
+.card {
+  height: 240px;
+}
