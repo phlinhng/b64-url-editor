@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Input, Select, Radio, Switch } from 'antd';
+import { Button, Input, Menu, Radio, Select, Switch, Dropdown } from 'antd';
 import { Layout, Row, Col, Card } from 'antd';
 import { Badge, Modal, message, Skeleton } from 'antd';
 import { CheckOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
@@ -31,6 +31,12 @@ const ssMethod = ['none','table','rc4','rc4-md5','rc4-md5-6','salsa20','chacha20
 'cast5-cfb','des-cfb','idea-cfb','seed-cfb','aes-256-gcm','aes-192-gcm','aes-128-gcm',
 'chacha20-ietf-poly1305','chacha20-poly1305','xchacha20-ietf-poly1305'];
 
+const defaultJson = {
+  ss: { id: "", aid: "", add: "", port: "", ps: "new shadowsocks" },
+  vmess: { add: "", port:"", id:"", aid: 1, net: "tcp", host: "", path:"/", tls: "none", type: "none", ps: "new v2ray", v: 2 },
+  trjan: { aid: "", add: "", port: "", ps: "new trojan" }
+}
+
 // convert utf-8 encoded base64
 const Base64 = {
   encode: (s) => {
@@ -61,7 +67,7 @@ const text2json =  {
     const starIndex = text.search('#');
     const trojan_name = decodeURIComponent(text.slice(starIndex+1)); // trojan://[password]@[address]:[port]?peer=#[remark]
     const trojan_link = text.slice(9,starIndex-6).split(/[@:]+/);
-    const trojan_json = { aid: trojan_link[0], add: trojan_link[1], port: trojan_link[2], ps: trojan_name }
+    const trojan_json = { aid: trojan_link[0], add: trojan_link[1], port: trojan_link[2], ps: trojan_name };
     return {type: urlType(text), json: trojan_json, raw: text, id: shortid.generate()};
   }),
   unsupported: ( (text) => {
@@ -107,7 +113,7 @@ function App() {
   const [ textInput, setTextInput ] = useState('');
   const [ subscribeInput, setSubscribeInput ] = useState('');
 
-  const [ serverList, setServerList ] = useState([{}]);
+  const [ serverList, setServerList ] = useState([]);
   const [ serverPointer, setServerPointer ] = useState(0); // index of selected item
 
   const [ clipboard, setClipboard ] = useClippy();
@@ -121,12 +127,6 @@ function App() {
       inputOnChange.subscribe({target:{value: searchParams.get('sub') }});
     }
   },[]); // this empty array is a trick to make useEffect to run only once when the page mounted
-
-  useEffect ( () => {
-    console.log(React.version);
-    //const searchParams = new URLSearchParams(window.location.search);
-  }); // this empty array is a trick to make useEffect to run only once when the page mounted
-
 
   const getServerList = (text_b64) => {
     try{
@@ -354,6 +354,14 @@ function App() {
         setHasEdited(1);
       }
     }),
+    create: ( (e) => {
+      console.log(e,e.key);
+      const new_json = { type: e.key, json: defaultJson[e.key], raw: "", id: shortid.generate() };
+      setServerList([...serverList, new_json]); //correct way to push new item to array in state
+      setServerPointer(serverList.length? serverList.length+1:0);
+      setLoading(false);
+      setHasEdited(1);
+    })
   }
 
   const inputTabContent = {
@@ -374,7 +382,9 @@ function App() {
     filterOption={ (input,option) => option.children[2].toLowerCase().indexOf(input.toLowerCase()) >= 0  }>
     { serverList.filter(x => supportedType.includes(x.type)).map( (item) => (<Option key={item.id} value={[item.json.ps,item.id]}>{getLogo(item.type)} {item.json.ps}</Option>) ) }
     </Select>
-    <Button type="primary" icon={<PlusOutlined />}/>
+    <Dropdown overlay={<Menu onClick={editOnChange.create}>
+      {supportedType.map( x => (<Menu.Item key={x}>{x}</Menu.Item>) )}
+    </Menu>}><Button type="primary" icon={<PlusOutlined />}/></Dropdown>
     <Button type="primary" disabled={isLoading ||!base64Input.length} icon={<DeleteOutlined />} onClick={deleteOnClick} danger/>
     </div>),
     remark: (<Input placeholder="節點名稱 (Remark)" addonAfter={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('type')? ( getLogo(serverList[serverPointer].type) ):(<QuestionCircleTwoTone />)}
@@ -383,7 +393,7 @@ function App() {
     <Input style={{width: "75%", textAlign:"left"}} disabled={isLoading || !base64Input.length} placeholder="服務器地址 (Address)" onChange={editOnChange.address} value={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.add:''} />
     <Input style={{width: "25%"}} disabled={isLoading || !base64Input.length} placeholder="port" onChange={editOnChange.port} value={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.port:''} />
     </InputGroup>),
-    skeleton: ( <Row type="flex" style={{marginBottom: -12}}><Skeleton /></Row> )
+    skeleton: ( <Row type="flex" style={{marginBottom: -12}}><Skeleton /></Row> ),
   }
 
   const detailedContent = {
