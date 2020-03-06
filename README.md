@@ -27,7 +27,7 @@
 ```
 https://www.phlinhng.com/b64-url-editor?sub=[your subscrption links]
 ```
-設置`qrcode=yes`可以自動顯示二維碼
+設置`qrcode=yes`可以自動顯示二維碼
 ```
 https://www.phlinhng.com/b64-url-editor?sub=[your subscrption links]&qrcode=yes
 ```
@@ -37,6 +37,7 @@ https://www.phlinhng.com/b64-url-editor?sub=[your subscrption links]&qrcode=yes
 
 ## known issues
 + clipboard content only loaded once, need to add a listener for clipboard changes
++ adding a new shadowsocks profile may change the height of `operateTab`
 
 ## todo
 + [x] 新增節點
