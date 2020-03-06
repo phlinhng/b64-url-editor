@@ -131,8 +131,12 @@ function App() {
 
   useEffect ( () => {
     if(window.location.search){
-      const searchParams = new URLSearchParams(window.location.search)
-      inputOnChange.subscribe({target:{value: searchParams.get('sub') }});
+      const searchParams = new URLSearchParams(window.location.search);
+      if(searchParams.get('sub') !== null){
+        inputOnChange.subscribe({target:{value: searchParams.get('sub') }})
+        .then( x => {if(x && searchParams.get('qrcode') === 'yes') setQrcodeVisible(true);} )
+        .catch( err => console.error(err) );
+      }
     }
   },[]); // this empty array is a trick to make useEffect to run only once when the page mounted
 
@@ -184,8 +188,14 @@ function App() {
       console.log(text_b64);
       if(getServerList(text_b64) !== text_b64) { message.success('解析成功'); }
     },
-    subscribe: (e) => {
+    subscribe: async (e) => {
       const content = e.target.value;
+      if(content === null) { return; }
+
+      const params = new URLSearchParams(window.location.search);
+      params.set('sub',content);
+      window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+
       setSubscribeInput(content);
       if(textTool.text2json.isText(content)) {
         setTextInput(content);
@@ -198,12 +208,12 @@ function App() {
       }else if(/^(http|https).*/.test(content)){
         const key = 'fetching';
         message.loading({ content: '導入訂閱鏈接中', key });
-        axios.get(e.target.value)
+        return await axios.get(content)
         .then(res => {return res.data;})
         .then(x => {setBase64Input(x); return Base64.decode(x);})
         .then(x => {setTextInput(x); return Base64.encode(x);})
         .then(x => {return getServerList(x);})
-      . then(x => {message.success({ content: '導入 ' + x.length + '個節點' + ' 成功', key, duration: 2 }); })
+        .then(x => {message.success({ content: '導入 ' + x.length + '個節點' + ' 成功', key, duration: 2 }); return x.length;})
         .catch(err => {console.error(err); message.warning({ content: '導入失敗', key, duration: 2 }); });
       }
     }
@@ -248,12 +258,20 @@ function App() {
             message.success('二維碼己生成');
             setHasEdited(0);
             setQrcodeVisible(true);
+
+            const params = URLSearchParams(window.location.search);
+            params.set('qrcode','yes');
+            window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
           },
           onCancel() {
             setQrcodeVisible(false);
           },});
         }else{
         setQrcodeVisible(true);
+
+        const params = URLSearchParams(window.location.search);
+        params.set('qrcode','yes');
+        window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
       }
       return;
     }),
@@ -561,7 +579,7 @@ function App() {
         <Col span={24}>
           Created by {<a href="https://www.phlinhng.com">phlinhng</a>}. All rights reserved.
         </Col>
-        <Col xs={0} sm={0} md={24}>
+        <Col xs={0} sm={0} md={qrcodeVisible? 0:24}>
         <a class="github-fork-ribbon right-bottom fixed" href="https://github.com/phlinhng/b64-url-editor" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
         </Col>
         </Row>
