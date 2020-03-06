@@ -243,6 +243,7 @@ function App() {
 
   const qrcodeModal = {
     btnOnClick: ( () => {
+      const params = new URLSearchParams(window.location.search);
       if(hasEdited){
         confirm({
           title: '有未保存的修改' ,
@@ -259,24 +260,27 @@ function App() {
             setHasEdited(0);
             setQrcodeVisible(true);
 
-            const params = new URLSearchParams(window.location.search);
             params.set('qrcode','yes');
             window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
           },
           onCancel() {
             setQrcodeVisible(false);
+            params.delete('qrcode');
+            window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
           },});
         }else{
         setQrcodeVisible(true);
-
-        const params = new URLSearchParams(window.location.search);
         params.set('qrcode','yes');
         window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
       }
       return;
     }),
-    onOk: ( () => setQrcodeVisible(false) ),
-    onCancel: ( () => setQrcodeVisible(false)),
+    close: ( () => {
+      setQrcodeVisible(false);
+      const params = new URLSearchParams(window.location.search);
+      params.delete('qrcode');
+      window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+    } ),
   }
 
   //const redoOnClick = () => {
