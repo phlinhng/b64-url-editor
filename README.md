@@ -18,13 +18,12 @@
 ## 手動添加節點列表
 支持添加多個節點，不同節點間使用換行(`\n`)或分號(`;`)隔開
 ## 手動添加BASE64密文
-## URL Query導入訂閱鏈接 (under maintainance)
+## URL Query導入訂閱鏈接
 > https://www.phlinhng.com/b64-url-editor/?sub=[your subscrption links]
 
 # todo
 + [ ] 新增節點
 + [ ] 生成QR Code
-+ [ ] 修好並完善URL Query
 + [ ] 生成訂閱鏈接 (需要api與服務器)
 + [ ] 調換節點順序
 + [ ] 完成README.md
