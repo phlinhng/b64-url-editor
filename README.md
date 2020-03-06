@@ -14,7 +14,8 @@
 2. 修改節點名稱、服務器地址、加密方式(ss)、密碼(ss,trojan)、連接方式(v2ray)、TLS(v2ray)、WS域名與路徑(v2ray)等
 3. 新增、刪除節點
 4. 合併節點列表
-5. 當BASE64轉換器用
+5. **生成二維碼**
+6. 當BASE64轉換器用
 
 ## 用法
 ### 手動導入訂閱鏈接
@@ -32,7 +33,7 @@ https://www.phlinhng.com/b64-url-editor?sub=[your subscrption links]
 https://www.phlinhng.com/b64-url-editor?sub=[your subscrption links]&qrcode=yes
 ```
 ### 單純BASE64轉換
-**文字轉BASE64 (encoding)**：URL欄位輸入任意文字，切換至BASE64欄位即可看到轉換結果。
+**文字轉BASE64 (encoding)**：URL欄位輸入任意文字，切換至BASE64欄位即可看到轉換結果。    
 **BASE64轉文字 (decoding)**：BASE64欄位輸入密文，切換至BASE64欄位即可看到轉換結果。
 
 ## known issues
