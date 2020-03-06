@@ -5,9 +5,9 @@
 <https://www.phlinhng.com/b64-url-editor>
 
 ## 支持的協議
-+ v2Ray (`vmess://...`)：支持TCP、WS、KCP三種連接方式
-+ Trojan-GFW (`trojan://...`)
-+ Shadowsocks (`ss://...`)：支持所有加密方式
++ [v2Ray](https://www.v2ray.com/index.html) (`vmess://...`)：支持TCP、WS、KCP三種連接方式
++ [Trojan-GFW](https://github.com/trojan-gfw/trojan) (`trojan://...`)
++ [Shadowsocks](https://en.wikipedia.org/wiki/Shadowsocks) (`ss://...`)：支持所有加密方式
 
 ## 功能
 1. 導入格式：訂閱連結、節點列表、BASE64 Cipher
