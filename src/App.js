@@ -259,7 +259,7 @@ function App() {
             setHasEdited(0);
             setQrcodeVisible(true);
 
-            const params = URLSearchParams(window.location.search);
+            const params = new URLSearchParams(window.location.search);
             params.set('qrcode','yes');
             window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
           },
@@ -269,7 +269,7 @@ function App() {
         }else{
         setQrcodeVisible(true);
 
-        const params = URLSearchParams(window.location.search);
+        const params = new URLSearchParams(window.location.search);
         params.set('qrcode','yes');
         window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
       }
