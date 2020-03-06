@@ -11,6 +11,7 @@
     "axios": "^0.19.2",
     "gh-pages": "^2.2.0",
     "github-fork-ribbon-css": "^0.2.3",
+    "qrcode.react": "^1.0.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-scripts": "3.4.0",

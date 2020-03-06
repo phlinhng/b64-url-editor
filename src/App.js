@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Button, Input, Menu, Radio, Select, Switch, Dropdown } from 'antd';
 import { Layout, Row, Col, Card } from 'antd';
 import { Badge, Modal, message, Skeleton } from 'antd';
-import { CheckOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { CheckOutlined, DeleteOutlined, InfoOutlined, PlusOutlined, QrcodeOutlined } from '@ant-design/icons';
 import { ExclamationCircleOutlined, QuestionCircleTwoTone } from '@ant-design/icons';
 import shortid from 'shortid';
 import useClippy from 'use-clippy';
 import axios from 'axios';
+import QRCode from 'qrcode.react';
 import './App.css';
 import { Logo } from './img';
 import 'github-fork-ribbon-css/gh-fork-ribbon.css';
@@ -52,58 +53,60 @@ const urlType = (text) => {
   return validPrefix.test(text)? text.slice(0,text.search('://')):'unsupported';
 }
 
-const text2json =  {
-  vmess: ( (text) => {
-    const vmess_json = JSON.parse(Base64.decode(text.replace('vmess://','')));
-    return { type: urlType(text), json: vmess_json, raw: text, id: shortid.generate() };
+const textTool = {
+  text2json: ({
+    vmess: ( (text) => {
+      const vmess_json = JSON.parse(Base64.decode(text.replace('vmess://','')));
+      return { type: urlType(text), json: vmess_json, raw: text, id: shortid.generate() };
+    }),
+    ss: ( (text) => {
+      const starIndex = text.search('#');
+      const ss_name = decodeURIComponent(text.slice(starIndex+1));
+      const ss_link = Base64.decode(text.slice(5,starIndex)).split(/[@:]+/); // chacha20-ietf:password@mydomain.com:8888
+      const ss_json = { id: ss_link[0], aid: ss_link[1], add: ss_link[2], port: ss_link[3], ps: ss_name };
+      return { type: urlType(text), json: ss_json, raw: text, id: shortid.generate()}; //id: security method, aid: password
+    }),
+    trojan: ( (text) =>{
+      const starIndex = text.search('#');
+      const trojan_name = decodeURIComponent(text.slice(starIndex+1)); // trojan://[password]@[address]:[port]?peer=#[remark]
+      const trojan_link = text.slice(9,starIndex-6).split(/[@:]+/);
+      const trojan_json = { aid: trojan_link[0], add: trojan_link[1], port: trojan_link[2], ps: trojan_name };
+      return {type: urlType(text), json: trojan_json, raw: text, id: shortid.generate()};
+    }),
+    unsupported: ( (text) => {
+      return { type: urlType(text), json:{}, raw: text, id: shortid.generate() };
+    }),
+    isText: ( (text) => ( text.split(/[,;\n]+/).every( x => validPrefix.test(x) ) ))
   }),
-  ss: ( (text) => {
-    const starIndex = text.search('#');
-    const ss_name = decodeURIComponent(text.slice(starIndex+1));
-    const ss_link = Base64.decode(text.slice(5,starIndex)).split(/[@:]+/); // chacha20-ietf:password@mydomain.com:8888
-    const ss_json = { id: ss_link[0], aid: ss_link[1], add: ss_link[2], port: ss_link[3], ps: ss_name };
-    return { type: urlType(text), json: ss_json, raw: text, id: shortid.generate()}; //id: security method, aid: password
+  json2text: ({
+    vmess: ( (json) => ( 'vmess://' + Base64.encode(JSON.stringify(json)) ) ),
+    ss: ( (json) => {
+      // chacha20-ietf:password@mydomain.com:8888
+      // id: method, aid: password
+      const ss_link = json.id + ':' + json.aid + '@' + json.add + ':' + json.port;
+      return 'ss://' + Base64.encode(ss_link) + '#' + encodeURIComponent(json.ps);
+    }),
+    trojan: ( (json) => {
+      // trojan://[password]@[address]:[port]?peer=#[remark]
+      return 'trojan://' + json.aid + '@' + json.add + ':' + json.port + '?peer=#' + encodeURIComponent(json.ps);
+    }),
+    unsupported: ( (json) => json.raw )
   }),
-  trojan: ( (text) =>{
-    const starIndex = text.search('#');
-    const trojan_name = decodeURIComponent(text.slice(starIndex+1)); // trojan://[password]@[address]:[port]?peer=#[remark]
-    const trojan_link = text.slice(9,starIndex-6).split(/[@:]+/);
-    const trojan_json = { aid: trojan_link[0], add: trojan_link[1], port: trojan_link[2], ps: trojan_name };
-    return {type: urlType(text), json: trojan_json, raw: text, id: shortid.generate()};
-  }),
-  unsupported: ( (text) => {
-    return { type: urlType(text), json:{}, raw: text, id: shortid.generate() };
-  }),
-  isText: ( (text) => ( text.split(/[;\n]+/).every( x => validPrefix.test(x) ) ))
-}
-
-const json2text = {
-  vmess: ( (json) => ( 'vmess://' + Base64.encode(JSON.stringify(json)) ) ),
-  ss: ( (json) => {
-    // chacha20-ietf:password@mydomain.com:8888
-    // id: method, aid: password
-    const ss_link = json.id + ':' + json.aid + '@' + json.add + ':' + json.port;
-    return 'ss://' + Base64.encode(ss_link) + '#' + encodeURIComponent(json.ps);
-  }),
-  trojan: ( (json) => {
-    // trojan://[password]@[address]:[port]?peer=#[remark]
-    return 'trojan://' + json.aid + '@' + json.add + ':' + json.port + '?peer=#' + encodeURIComponent(json.ps);
-  }),
-  unsupported: ( (json) => json.raw )
+  text2qrcode: ( (text) => <QRCode size="96" value={text}></QRCode>)
 }
 
 const urlArray = {
   b64ToArr: ((cipher) => {
     if(cipher.length && base64regex.test(cipher)){
-      const text_list = Base64.decode(cipher).split(/[;\n]+/); //base64 cipher to text to array of texts
-      const json_arr = text_list.map(x => text2json[urlType(x)](x)); // array of texts to array of jsons
+      const text_list = Base64.decode(cipher).split(/[,;\n]+/); //base64 cipher to text to array of texts
+      const json_arr = text_list.map(x => textTool.text2json[urlType(x)](x)); // array of texts to array of jsons
       console.log('urlArray.b64ToArr',json_arr);
       return json_arr; //array of jsons
     }else {
       return cipher; //if input is not a base64 cipher, return the original input
     }
   }),
-  arrToB64: ((arr) => ( Base64.encode( arr.map( x=> json2text[x.type](x.json) ).join('\n') ) ))
+  arrToB64: ((arr) => ( Base64.encode( arr.map( x=> textTool.json2text[x.type](x.json) ).join(';') ) ))
 }
 
 function App() {
@@ -123,6 +126,8 @@ function App() {
   const [ hasEdited, setHasEdited ] = useState(0);
 
   const [ createdNo, setCreatedNo ] = useState({ss: 0, vmess: 0, trojan: 0});
+
+  const [ qrcodeVisible, setQrcodeVisible ] = useState(false);
 
   useEffect ( () => {
     if(window.location.search){
@@ -182,7 +187,7 @@ function App() {
     subscribe: (e) => {
       const content = e.target.value;
       setSubscribeInput(content);
-      if(text2json.isText(content)) {
+      if(textTool.text2json.isText(content)) {
         setTextInput(content);
         if(e.target.value === '') { return; }
         const text_b64 = Base64.encode(content);
@@ -220,17 +225,47 @@ function App() {
   const saveOnClick = () => {
     const output = urlArray.arrToB64(serverList);
     setBase64Input(output);
-    setTextInput(serverList.map(x => json2text[x.type](x.json) ).join('\n') );
+    setTextInput(serverList.map(x => textTool.json2text[x.type](x.json) ).join(';') );
     setClipboard(output);
     message.success('New BASE64 copied');
     setHasEdited(0);
   }
 
-  const redoOnClick = () => {
+  const qrcodeModal = {
+    btnOnClick: ( () => {
+      if(hasEdited){
+        confirm({
+          title: '有未保存的修改' ,
+          icon: <InfoOutlined />,
+          content: '按保存生成二維碼',
+          okText: '保存',
+          cancelText: '取消',
+          okType: 'danger',
+          onOk() {
+            const output = urlArray.arrToB64(serverList);
+            setBase64Input(output);
+            setTextInput(serverList.map(x => textTool.json2text[x.type](x.json) ).join(';') );
+            message.success('二維碼己生成');
+            setHasEdited(0);
+            setQrcodeVisible(true);
+          },
+          onCancel() {
+            setQrcodeVisible(false);
+          },});
+        }else{
+        setQrcodeVisible(true);
+      }
+      return;
+    }),
+    onOk: ( () => setQrcodeVisible(false) ),
+    onCancel: ( () => setQrcodeVisible(false)),
+  }
+
+  //const redoOnClick = () => {
     //const orignalName = urlName(serverList[serverPointer].raw);
     //const selectedId = serverList[serverPointer].id;
     //setServerList(serverList.map(item => item.id === selectedId ? {...item, name: orignalName }: item));
-  }
+  //}
 
   const deleteOnClick = () => {
     confirm({
@@ -239,6 +274,7 @@ function App() {
       content: '這項操作無法復原',
       okText: '確定',
       cancelText: '取消',
+      okType: 'danger',
       onOk() {
         //console.log(serverPointer);
         performDelete(serverList[serverPointer]);
@@ -366,7 +402,7 @@ function App() {
       setCreatedNo(new_createdNoJson);
 
       const new_json = defaultJson[typeKey](new_createdNo);
-      const new_raw = json2text[typeKey](new_json);
+      const new_raw = textTool.json2text[typeKey](new_json);
 
       const new_server = { type: typeKey, json: new_json, raw: new_raw, id: shortid.generate() };
       setServerList([...serverList, new_server]); //correct way to push new item to array in state
@@ -398,7 +434,7 @@ function App() {
     { serverList.filter(x => supportedType.includes(x.type)).map( (item) => (<Option key={item.id} value={[item.json.ps,item.id]}>{getLogo(item.type)} {item.json.ps}</Option>) ) }
     </Select>
     <Dropdown overlay={<Menu onClick={editOnChange.create}>
-      {supportedType.map( x => (<Menu.Item key={x}>{x}</Menu.Item>) )}
+      {supportedType.map( x => (<Menu.Item key={x}>{getLogo(x)}&nbsp;&nbsp;{x.toUpperCase()}</Menu.Item>) )}
     </Menu>}><Button type="primary" icon={<PlusOutlined />}/></Dropdown>
     <Button type="primary" disabled={isLoading ||!base64Input.length} icon={<DeleteOutlined />} onClick={deleteOnClick} danger/>
     </div>),
@@ -488,7 +524,14 @@ function App() {
       <Col xs={24} sm={24} md={16}> {commonContent.serverAddress} </Col>
     </Row>),
     detailedEdit: ( serverList[serverPointer]? (supportedType.includes(serverList[serverPointer].type)? detailedContent[serverList[serverPointer].type]:commonContent.skeleton):(commonContent.skeleton)),
-    buttons : ( <span><Badge count={hasEdited} dot><Button type="primary" icon={<CheckOutlined />} disabled={isLoading || !base64Input.length} onClick={saveOnClick}>生成</Button></Badge></span>)
+    buttons : (<span>
+      <Badge count={hasEdited} offset={[-7,0]} dot>
+        <Button style={{marginRight: 8}} type="primary" icon={<QrcodeOutlined />} disabled={isLoading || !base64Input.length} onClick={qrcodeModal.btnOnClick}></Button>
+      </Badge>
+      <Badge count={hasEdited} offset={[-3,0]} dot>
+        <Button type="primary" icon={<CheckOutlined />} disabled={isLoading || !base64Input.length} onClick={saveOnClick}>保存</Button>
+      </Badge>
+      </span>)
   }
 
   return (
@@ -508,15 +551,22 @@ function App() {
           </Col>
         </Row>
         </Content>
+        <Modal title="生成二維碼 (Generate QRCode)" visible={qrcodeVisible} onOk={qrcodeModal.onOk} onCancel={qrcodeModal.onCancel}>
+          <Row justify="center">
+          {textTool.text2qrcode(textInput)}
+          </Row>
+        </Modal>
         <Footer>
         <Row justify={"center"}>
-          <Col span={24}>
+        <Col span={24}>
           Created by {<a href="https://www.phlinhng.com">phlinhng</a>}. All rights reserved.
+        </Col>
+        <Col xs={0} sm={0} md={24}>
+        <a class="github-fork-ribbon right-bottom fixed" href="https://github.com/phlinhng/b64-url-editor" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
         </Col>
         </Row>
         </Footer>
       </Layout>
-      <a class="github-fork-ribbon right-bottom fixed" href="https://github.com/phlinhng/b64-url-editor" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
     </div>
   );
 }
