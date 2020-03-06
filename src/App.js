@@ -90,7 +90,7 @@ const urlArray = {
     if(cipher.length && base64regex.test(cipher)){
       const text_list = Base64.decode(cipher).split(/[;\n]+/); //base64 cipher to text to array of texts
       const json_arr = text_list.map(x => text2json[urlType(x)](x)); // array of texts to array of jsons
-      console.log('urlArray.b64ToArr',urls);
+      console.log('urlArray.b64ToArr',json_arr);
       return json_arr; //array of jsons
     }else {
       return cipher; //if input is not a base64 cipher, return the original input
@@ -127,8 +127,6 @@ function App() {
     //const searchParams = new URLSearchParams(window.location.search);
   }); // this empty array is a trick to make useEffect to run only once when the page mounted
 
-  
-  
 
   const getServerList = (text_b64) => {
     try{
