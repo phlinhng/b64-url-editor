@@ -9,6 +9,7 @@ import useClippy from 'use-clippy';
 import axios from 'axios';
 import './App.css';
 import { Logo } from './img';
+import 'github-fork-ribbon-css/gh-fork-ribbon.css';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -32,9 +33,9 @@ const ssMethod = ['none','table','rc4','rc4-md5','rc4-md5-6','salsa20','chacha20
 'chacha20-ietf-poly1305','chacha20-poly1305','xchacha20-ietf-poly1305'];
 
 const defaultJson = {
-  ss: { id: "", aid: "", add: "", port: "", ps: "new shadowsocks" },
-  vmess: { add: "", port:"", id:"", aid: 1, net: "tcp", host: "", path:"/", tls: "none", type: "none", ps: "new v2ray", v: 2 },
-  trjan: { aid: "", add: "", port: "", ps: "new trojan" }
+  ss: (num) => ({ id: "", aid: "", add: "", port: "", ps: "new shadowsocks [%]".replace('%',num) }),
+  vmess: (num) => ({ add: "", port:"", id:"", aid: 1, net: "tcp", host: "", path:"/", tls: "none", type: "none", ps: "new v2ray [%]".replace('%',num), v: 2 }),
+  trojan: (num) => ({ aid: "", add: "", port: "", ps: "new trojan [%]".replace('%',num) })
 }
 
 // convert utf-8 encoded base64
@@ -120,6 +121,8 @@ function App() {
 
   const [ isLoading, setLoading ] = useState(true);
   const [ hasEdited, setHasEdited ] = useState(0);
+
+  const [ createdNo, setCreatedNo ] = useState({ss: 0, vmess: 0, trojan: 0});
 
   useEffect ( () => {
     if(window.location.search){
@@ -355,11 +358,23 @@ function App() {
       }
     }),
     create: ( (e) => {
-      console.log(e,e.key);
-      const new_json = { type: e.key, json: defaultJson[e.key], raw: "", id: shortid.generate() };
-      setServerList([...serverList, new_json]); //correct way to push new item to array in state
-      setServerPointer(serverList.length? serverList.length+1:0);
+      //console.log(e,e.key);
+      const typeKey = e.key;
+      const new_createdNo = createdNo[typeKey] + 1;
+      const new_createdNoJson = JSON.parse(JSON.stringify(createdNo));
+      new_createdNoJson[typeKey] = new_createdNo;
+      setCreatedNo(new_createdNoJson);
+
+      const new_json = defaultJson[typeKey](new_createdNo);
+      const new_raw = json2text[typeKey](new_json);
+
+      const new_server = { type: typeKey, json: new_json, raw: new_raw, id: shortid.generate() };
+      setServerList([...serverList, new_server]); //correct way to push new item to array in state
+      setServerPointer(serverList.length? serverList.length:0);
       setLoading(false);
+      const new_text = (textInput.length? (textInput+';'):'') + new_raw;
+      inputOnChange.base64({target:{value: Base64.encode(new_text)}}); // to prevent success message poping up , set base64 instead of text
+      setOperateActive('detailedEdit');
       setHasEdited(1);
     })
   }
@@ -408,12 +423,12 @@ function App() {
         </InputGroup>
       </Col>
       <Col xs={24} sm={24} md={12}>
-        <Radio.Group style={{marginLeft: -24}} onChange={editOnChange.net} value={serverList[serverPointer]? (serverList[serverPointer].json? serverList[serverPointer].json.net:''):''}>
+        <Radio.Group style={{marginLeft: -24}} onChange={editOnChange.net} disabled={isLoading || !base64Input.length} value={serverList[serverPointer]? (serverList[serverPointer].json? serverList[serverPointer].json.net:''):''}>
           <Radio key="tcp" value="tcp">TCP</Radio>
           <Radio key="ws" value="ws">WS</Radio>
           <Radio key="kcp" value="kcp">KCP</Radio>
         </Radio.Group>
-        <Switch checkedChildren="TLS" unCheckedChildren="TLS" onChange={editOnChange.tls}
+        <Switch checkedChildren="TLS" unCheckedChildren="TLS" disabled={isLoading || !base64Input.length} onChange={editOnChange.tls}
         checked={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? (serverList[serverPointer].json.tls === 'tls'):false}></Switch>
       </Col>
       <Col xs={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? (serverList[serverPointer].json.net === 'ws'? 24:0):0}
@@ -501,6 +516,7 @@ function App() {
         </Row>
         </Footer>
       </Layout>
+      <a class="github-fork-ribbon right-bottom fixed" href="https://github.com/phlinhng/b64-url-editor" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
     </div>
   );
 }
