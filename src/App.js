@@ -573,7 +573,7 @@ function App() {
           </Col>
         </Row>
         </Content>
-        <Modal title="生成二維碼 (Generate QRCode)" visible={qrcodeVisible} onOk={qrcodeModal.onOk} onCancel={qrcodeModal.onCancel}>
+        <Modal title="生成二維碼 (Generate QRCode)" visible={qrcodeVisible} onOk={qrcodeModal.close} onCancel={qrcodeModal.close}>
           <Row justify="center">
           {textTool.text2qrcode(textInput)}
           </Row>
