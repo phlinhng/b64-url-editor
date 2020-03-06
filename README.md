@@ -34,7 +34,7 @@ https://www.phlinhng.com/b64-url-editor?sub=[your subscrption links]&qrcode=yes
 ```
 ### 單純BASE64轉換
 **文字轉BASE64 (encoding)**：URL欄位輸入任意文字，切換至BASE64欄位即可看到轉換結果。    
-**BASE64轉文字 (decoding)**：BASE64欄位輸入密文，切換至BASE64欄位即可看到轉換結果。
+**BASE64轉文字 (decoding)**：BASE64欄位輸入密文，切換至URL欄位即可看到轉換結果。
 
 ## known issues
 + clipboard content only loaded once, need to add a listener for clipboard changes
