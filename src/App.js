@@ -351,15 +351,15 @@ function App() {
   }
 
   const inputTabContent = {
-    API: (<Row gutter={[0,16]}>
+    API: (<Row gutter={[0,16]} style={{marginBottom: -20}}>
       <Col span={24}><TextArea rows={4} autosize={false} placeholder={'輸入訂閱網址或服務器鏈接'} onChange={inputOnChange.subscribe} value={subscribeInput}/></Col>
-      <Col span={24} style={{marginBottom: -21}}><Button type="primary" block onClick={importFromClipboard.subscribe}>從剪貼版導入</Button></Col></Row>),
-    TEXT: (<Row gutter={[0,16]}>
+      <Col span={24} ><Button type="primary" block onClick={importFromClipboard.subscribe}>從剪貼版導入</Button></Col></Row>),
+    TEXT: (<Row gutter={[0,16]} style={{marginBottom: -20}}>
       <Col span={24}><TextArea rows={4} autosize={false} onChange={inputOnChange.text} value={textInput}/></Col>
-      <Col span={24} style={{marginBottom: -21}}><Button type="primary" block onClick={importFromClipboard.text}>從剪貼版導入</Button></Col></Row>),
-    BASE64: (<Row gutter={[0,16]}>
+      <Col span={24}><Button type="primary" block onClick={importFromClipboard.text}>從剪貼版導入</Button></Col></Row>),
+    BASE64: (<Row gutter={[0,16]} style={{marginBottom: -20}}>
       <Col span={24}><TextArea rows={4} autosize={false} onChange={inputOnChange.base64} value={base64Input}/></Col>
-      <Col span={24} style={{marginBottom: -21}}><Button type="primary" block onClick={importFromClipboard.base64}>從剪貼版導入</Button></Col></Row>)
+      <Col span={24}><Button type="primary" block onClick={importFromClipboard.base64}>從剪貼版導入</Button></Col></Row>)
   }
 
   const commonContent = {
@@ -373,11 +373,12 @@ function App() {
     serverAddress: (<InputGroup compact>
     <Input style={{width: "75%", textAlign:"left"}} disabled={isLoading || !base64Input.length} placeholder="服務器地址 (Address)" onChange={editOnChange.address} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.add:''} />
     <Input style={{width: "25%"}} disabled={isLoading || !base64Input.length} placeholder="port" onChange={editOnChange.port} value={urlList[urlPointer] && urlList[urlPointer].hasOwnProperty('json')? urlList[urlPointer].json.port:''} />
-    </InputGroup>)
+    </InputGroup>),
+    skeleton: ( <Row type="flex" style={{marginBottom: -12}}><Skeleton /></Row> )
   }
 
   const detailedContent = {
-    vmess: (<Row gutter={[16,24]}>
+    vmess: (<Row gutter={[16,24]} type="flex" style={{marginBottom: -18}}>
       <Col xs={24} sm={24} md={12} > {commonContent.select} </Col>
       <Col xs={20} sm={20} md={10}> {commonContent.remark} </Col>
       <Col xs={4} sm={4} md={2}> {commonContent.deleteIcon} </Col>
@@ -420,7 +421,7 @@ function App() {
       </Select>
     </Col>
     </Row>),
-    ss: (<Row gutter={[16,24]}>
+    ss: (<Row gutter={[16,24]} type="flex" style={{marginBottom: -18}}>
       <Col xs={24} sm={24} md={12}> {commonContent.select} </Col>
       <Col xs={20} sm={20} md={10}> {commonContent.remark} </Col>
       <Col xs={4} sm={4} md={2}> {commonContent.deleteIcon} </Col>
@@ -437,7 +438,7 @@ function App() {
       </Col>
       </Row>
     ),
-    trojan: (<Row gutter={[16,24]}>
+    trojan: (<Row gutter={[16,24]} type="flex" style={{marginBottom: -18}}>
       <Col xs={24} sm={24} md={12}> {commonContent.select} </Col>
       <Col xs={20} sm={20} md={10}> {commonContent.remark} </Col>
       <Col xs={4} sm={4} md={2}> {commonContent.deleteIcon} </Col>
@@ -452,13 +453,13 @@ function App() {
 
   const operateTabContent = {
     fastEdit: (
-    <Row gutter={[16,24]} justify={"center"}>
+    <Row gutter={[16,24]} justify={"center"} type="flex" style={{marginBottom: -18}}>
       <Col xs={16} sm={16} md={14} style={{height: 48}}> {commonContent.select} </Col>
       <Col xs={4} sm={4} md={2}> {commonContent.deleteIcon} </Col>
       <Col xs={24} sm={24} md={16}> {commonContent.remark} </Col>
       <Col xs={24} sm={24} md={16}> {commonContent.serverAddress} </Col>
     </Row>),
-    detailedEdit: ( urlList[urlPointer]? (supportedType.includes(urlList[urlPointer].type)? detailedContent[urlList[urlPointer].type]:<Skeleton/>):(<Skeleton/>)),
+    detailedEdit: ( urlList[urlPointer]? (supportedType.includes(urlList[urlPointer].type)? detailedContent[urlList[urlPointer].type]:commonContent.skeleton):(commonContent.skeleton)),
     buttons : ( <div><Badge count={hasEdited} dot><Button type="primary" icon={<CheckOutlined />} disabled={isLoading || !base64Input.length} onClick={saveOnClick}>生成</Button></Badge></div>)
   }
 
