@@ -19,16 +19,23 @@
 ### 手動導入訂閱鏈接
 只能導入一個訂閱鏈接
 ### 手動添加節點列表
-支持添加多個節點，不同節點間使用換行(`\n`)或分號(`;`)隔開
-## 手動添加BASE64密文
+支持添加多個節點，不同節點間使用換行(`\n`)、逗號(`,`)或分號(`;`)隔開。
+### 手動添加BASE64密文
 ### URL Query導入訂閱鏈接
-> https://www.phlinhng.com/b64-url-editor?sub=\[your subscrption links\]
+```
+https://www.phlinhng.com/b64-url-editor?sub=[your subscrption links]
+```
+設置`qrcode=yes`可以自動顯示二維碼
+```
+https://www.phlinhng.com/b64-url-editor?sub=[your subscrption links]&qrcode=yes
+```
 
 ## todo
 + [x] 新增節點
-+ [ ] 生成QR Code
++ [x] 生成QR Code
 + [ ] 生成訂閱鏈接 (需要api與服務器)
-+ [ ] 完善URL Query
++ [x] 完善URL Query
++ [ ] 完善一鍵粘貼
 + [ ] 調換節點順序
 + [ ] 多個訂閱連結合併
 + [ ] 完成README.md
