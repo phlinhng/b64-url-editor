@@ -3,13 +3,15 @@ import { Button, Input, Menu, Radio, Select, Switch, Dropdown } from 'antd';
 import { Layout, Row, Col, Card } from 'antd';
 import { Badge, Modal, message, Skeleton } from 'antd';
 import { CheckOutlined, DeleteOutlined, InfoOutlined, PlusOutlined, QrcodeOutlined } from '@ant-design/icons';
-import { ExclamationCircleOutlined, QuestionCircleTwoTone } from '@ant-design/icons';
+import { ExclamationCircleOutlined, QuestionCircleTwoTone, ShareAltOutlined } from '@ant-design/icons';
 import shortid from 'shortid';
 import useClippy from 'use-clippy';
 import axios from 'axios';
+import crypto from 'crypto';
 import QRCode from 'qrcode.react';
 import './App.css';
 import { Logo } from './img';
+import { apiBaseURL } from './submit';
 import 'github-fork-ribbon-css/gh-fork-ribbon.css';
 
 const { TextArea } = Input;
@@ -109,6 +111,41 @@ const urlArray = {
   arrToB64: ((arr) => ( Base64.encode( arr.map( x=> textTool.json2text[x.type](x.json) ).join(';') ) ))
 }
 
+const submitCustomForm = async (user, pwd, cipher) => {
+  try {
+    // check if user and password matched
+    const objId = await axios({
+      method: 'post',
+      baseURL: apiBaseURL,
+      url: '/check',
+      'Content-Type': 'application/json',
+      data: {"user": user , "pwd": crypto.createHash('sha256').update(pwd).digest('base64')}
+    }).then(x => x.data);
+    if(objId.length){
+      // if matched, update records
+      return axios({
+        method: 'put',
+        baseURL: apiBaseURL,
+        url: objId[0]._id,
+        data: {"cipher": cipher}
+      })
+    }else {
+      // if not matched, create  a new record
+      return axios({
+        method: 'post',
+        baseURL: apiBaseURL,
+        'Content-Type': 'application/json',
+        data: {"user": user, "pwd": crypto.createHash('sha256').update(pwd).digest('base64')
+        , "cipher": cipher}
+      })
+    }
+  }catch(err) {
+    console.error(err);
+    message.error('Internal Error');
+  }
+
+}
+
 function App() {
   const [ inputActive, setInputActive ] = useState('API');
   const [ operateActive, setOperateActive ] = useState('fastEdit');
@@ -128,6 +165,14 @@ function App() {
   const [ createdNo, setCreatedNo ] = useState({ss: 0, vmess: 0, trojan: 0});
 
   const [ qrcodeVisible, setQrcodeVisible ] = useState(false);
+
+  const [ subLinkVisible, setSubLinkVisible ] = useState(false);
+  const [ customLink, setCustomLink ] = useState('');
+  const [ customFormVisible, setCustomFormVisble ] = useState(false);
+  const [ customFormLoading, setCustomFormLoading ] = useState(false);
+
+  const [ customLinkUser, setCustomLinkUser ] = useState('');
+  const [ customLinkPwd, setCustomLinkPwd ] = useState('');
 
   useEffect ( () => {
     if(window.location.search){
@@ -239,6 +284,70 @@ function App() {
     setClipboard(output);
     message.success('New BASE64 copied');
     setHasEdited(0);
+  }
+
+  const customLinkForm = {
+    userOnChange: ( e => setCustomLinkUser(e.target.value.trim()) ),
+    pwdOnChange: ( e => setCustomLinkPwd(e.target.value)),
+    submit: ( async () => {
+      try{
+        const params = new URLSearchParams(window.location.search);
+        setCustomFormLoading(true);
+        submitCustomForm(customLinkUser, customLinkPwd, base64Input)
+        .then( x => { return x.data._id } )
+        .then( x => { return apiBaseURL+'/'+x })
+        .then( x => {
+          setCustomLink(x);
+          params.set('sub',x);
+          window.history.replaceState({}, '', `${window.location.pathname}?${params}`) })
+        .then( () => { 
+          message.success('訂閱鏈接己生成');
+          setCustomFormLoading(false);
+          setSubLinkVisible(true);
+          setCustomFormVisble(false); })
+        .catch( (err) => {
+          console.error(err);
+          message.error('Internal Error');} )
+      }catch(err) {
+        console.error(err);
+        message.error('Internal Error');
+      }
+    })
+  }
+
+  const subLinkCreationConfirm = () => {
+    confirm({title: '確定生成訂閱鏈結？',
+    icon: <ShareAltOutlined />,
+    content: 'This operation will use an API provided by the author, and your data will be confidential. Your links will not be sent by API before confirming . If you have security concern please make your own decision before clicking OK.',
+    onOk() {
+      setCustomFormVisble(true);
+      return;
+    },
+    onCancel(){
+      return;
+    }})
+  }
+
+  const subLinkModal = {
+    btnOnClick: (() => {
+      if(hasEdited || !base64Input.length){
+        return;
+      }else if(hasEdited){
+        confirm({
+          title: '有未保存的修改' ,
+          icon: <InfoOutlined />,
+          content: '按保存生成訂閱鏈接',
+          okText: '保存',
+          cancelText: '取消',
+          okType: 'danger',
+          onOk: () =>  subLinkCreationConfirm(),
+          onCancel: () => { return; }}
+        );
+      }else {
+        subLinkCreationConfirm();
+      }
+      return;
+    }),
   }
 
   const qrcodeModal = {
@@ -446,7 +555,11 @@ function App() {
       <Col span={24}><Button type="primary" block onClick={importFromClipboard.text}>從剪貼版導入</Button></Col></Row>),
     BASE64: (<Row gutter={[0,16]} style={{marginBottom: -20}}>
       <Col span={24}><TextArea rows={4} autosize={false} onChange={inputOnChange.base64} value={base64Input}/></Col>
-      <Col span={24}><Button type="primary" block onClick={importFromClipboard.base64}>從剪貼版導入</Button></Col></Row>)
+      <Col span={24}><Button type="primary" block onClick={importFromClipboard.base64}>從剪貼版導入</Button></Col></Row>),
+    _buttons: (
+    <Badge count={hasEdited} offset={[-3,0]} dot>
+      <Button type="primary" disabled={!base64Input.length} onClick={subLinkModal.btnOnClick}>訂閱鏈接</Button>
+    </Badge>)
   }
 
   const commonContent = {
@@ -546,7 +659,7 @@ function App() {
       <Col xs={24} sm={24} md={16}> {commonContent.serverAddress} </Col>
     </Row>),
     detailedEdit: ( serverList[serverPointer]? (supportedType.includes(serverList[serverPointer].type)? detailedContent[serverList[serverPointer].type]:commonContent.skeleton):(commonContent.skeleton)),
-    buttons : (<span>
+    _buttons : (<span>
       <Badge count={hasEdited} offset={[-7,0]} dot>
         <Button style={{marginRight: 8}} type="primary" icon={<QrcodeOutlined />} disabled={isLoading || !base64Input.length} onClick={qrcodeModal.btnOnClick}></Button>
       </Badge>
@@ -566,10 +679,10 @@ function App() {
         <Content>
         <Row gutter={[16,16]} justify={"space-between"} type="flex">
           <Col xs={24} sm={24} md={12}>
-          <Card className="card" tabList={operateTabList} tabBarExtraContent={operateTabContent.buttons} activeTabKey={operateActive} onTabChange={key => setOperateActive(key)}>{operateTabContent[operateActive]}</Card>
+          <Card className="card" tabList={operateTabList} tabBarExtraContent={operateTabContent._buttons} activeTabKey={operateActive} onTabChange={key => setOperateActive(key)}>{operateTabContent[operateActive]}</Card>
           </Col>
           <Col xs={24} sm={24} md={12}>
-            <Card className="card" tabList={inputTabList} activeTabKey={inputActive} onTabChange={key => setInputActive(key)}>{inputTabContent[inputActive]}</Card>
+            <Card className="card" tabList={inputTabList} tabBarExtraContent={inputTabContent._buttons} activeTabKey={inputActive} onTabChange={key => setInputActive(key)}>{inputTabContent[inputActive]}</Card>
           </Col>
         </Row>
         </Content>
@@ -578,12 +691,26 @@ function App() {
           {textTool.text2qrcode(textInput)}
           </Row>
         </Modal>
+        <Modal title="訂閱鏈接 (Generate Subscription link)" visible={subLinkVisible} onOk={() => setSubLinkVisible(false)} onCancel={() => setSubLinkVisible(false)}>
+          <Row gutter={[16,16]} justify="center">
+            <Col span={20}><Input value={customLink}/></Col>
+          </Row>
+          <Row justify="center">
+            {textTool.text2qrcode('123')}
+          </Row>
+        </Modal>
+        <Modal title="請輸入資料 (用於更新訂閱鏈接)" visible={customFormVisible} onOk={customLinkForm.submit} onCancel={() => setCustomFormVisble(false)} confirmLoading={customFormLoading}>
+          <Row gutter={[16,16]} justify="center">
+            <Col xs={20} sm={20} md={12}><Input placeholder="使用者名稱 (唯一識別符)" value={customLinkUser} onChange={customLinkForm.userOnChange}/></Col>
+            <Col xs={20} sm={20} md={12}><Input.Password placeholder="密碼 (Password)" value={customLinkPwd} onChange={customLinkForm.pwdOnChange}/></Col>
+          </Row>
+        </Modal>
         <Footer>
         <Row justify={"center"}>
         <Col span={24}>
           Created by {<a href="https://www.phlinhng.com">phlinhng</a>}. All rights reserved.
         </Col>
-        <Col xs={0} sm={0} md={qrcodeVisible? 0:24}>
+        <Col xs={0} sm={0} md={qrcodeVisible || subLinkVisible || customFormVisible? 0:24}>
         <a class="github-fork-ribbon right-bottom fixed" href="https://github.com/phlinhng/b64-url-editor" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
         </Col>
         </Row>

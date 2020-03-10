@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^7.1.2",
     "antd": "^4.0.0",
     "axios": "^0.19.2",
+    "crypto": "^1.0.1",
     "gh-pages": "^2.2.0",
     "github-fork-ribbon-css": "^0.2.3",
     "qrcode.react": "^1.0.0",
@@ -21,7 +22,7 @@
   "scripts": {
     "predeploy": "yarn run build",
     "deploy": "gh-pages -d build",
-    "start": "react-scripts start",
+    "start": "PORT=3001 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
