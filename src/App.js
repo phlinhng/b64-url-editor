@@ -111,32 +111,15 @@ const urlArray = {
   arrToB64: ((arr) => ( Base64.encode( arr.map( x=> textTool.json2text[x.type](x.json) ).join(';') ) ))
 }
 
-const generateEncrypted = (base64text, password) => {
-  const algorithm = 'aes-192-cbc';
-
-  const key = crypto.scryptSync(password, 'saltsalt', 24);
-  const iv = Buffer.alloc(16, 0); // Initialization vector.
-
-  const cipher = crypto.createCipheriv(algorithm, key, iv);
-
-  let encrypted = cipher.update(base64text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-
-  return encrypted;
-}
-
 const submitCustomForm = async (user, pwd, base64text) => {
   try {
-    // generate sha256 password as rsa key
-    const password = crypto.createHash('sha256').update(pwd).digest('base64');
-    const encrypted = generateEncrypted(base64text, password);
     // check if user and password matched
     const objId = await axios({
       method: 'post',
       baseURL: apiBaseURL,
       url: '/check',
       'Content-Type': 'application/json',
-      data: {"user": user , "pwd": password}
+      data: {"user": user , "pwd": crypto.createHash('sha256').update(pwd).digest('base64')}
     }).then(x => x.data);
     if(objId.length){
       // if matched, update records
@@ -144,7 +127,7 @@ const submitCustomForm = async (user, pwd, base64text) => {
         method: 'put',
         baseURL: apiBaseURL,
         url: objId[0]._id,
-        data: {"encrypted": encrypted}
+        data: {"encrypted": base64text}
       })
     }else {
       // if not matched, create  a new record
@@ -152,13 +135,12 @@ const submitCustomForm = async (user, pwd, base64text) => {
         method: 'post',
         baseURL: apiBaseURL,
         'Content-Type': 'application/json',
-        data: {"user": user, "pwd": password
-        , "encrypted": encrypted}
+        data: {"user": user, "pwd": crypto.createHash('sha256').update(pwd).digest('base64')
+        , "encrypted": base64text}
       })
     }
   }catch(err) {
     console.error(err);
-    message.error('Internal Error');
   }
 
 }
@@ -295,11 +277,12 @@ function App() {
   }
 
   const saveOnClick = () => {
-    const output = urlArray.arrToB64(serverList);
-    setBase64Input(output);
-    setTextInput(serverList.map(x => textTool.json2text[x.type](x.json) ).join(';') );
-    setClipboard(output);
-    message.success('New BASE64 copied');
+    const Base64Output = urlArray.arrToB64(serverList);
+    const TextOutput = serverList.map(x => textTool.json2text[x.type](x.json) ).join(';');
+    setBase64Input(Base64Output);
+    setTextInput(TextOutput);
+    setClipboard(TextOutput);
+    message.success('新鏈接己複製');
     setHasEdited(0);
   }
 
@@ -324,9 +307,11 @@ function App() {
           setCustomFormVisble(false); })
         .catch( (err) => {
           console.error(err);
-          message.error('Internal Error');} )
+          setCustomFormLoading(false);
+        } )
       }catch(err) {
         console.error(err);
+        setCustomFormLoading(false);
         message.error('Internal Error');
       }
     })
@@ -347,9 +332,7 @@ function App() {
 
   const subLinkModal = {
     btnOnClick: (() => {
-      if(hasEdited || !base64Input.length){
-        return;
-      }else if(hasEdited){
+      if(hasEdited){
         confirm({
           title: '有未保存的修改' ,
           icon: <InfoOutlined />,
