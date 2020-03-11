@@ -230,7 +230,6 @@ function App() {
       setBase64Input(text_b64);
       // if equals, mean that input text have not been transferred to urls array
       console.log(text_b64);
-      if(getServerList(text_b64) !== text_b64) { message.success('解析成功'); }
     },
     subscribe: async (e) => {
       const content = e.target.value;
@@ -248,7 +247,6 @@ function App() {
         setBase64Input(text_b64);
         // if equals, mean that input text have not been transferred to urls array
         console.log(text_b64);
-        if(getServerList(text_b64) !== text_b64) { message.success('解析成功'); }
       }else if(/^(http|https).*/.test(content)){
         const key = 'fetching';
         message.loading({ content: '導入訂閱鏈接中', key });
