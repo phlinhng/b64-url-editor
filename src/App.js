@@ -562,7 +562,7 @@ function App() {
       <Col span={24}><Button type="primary" block onClick={importFromClipboard.base64}>從剪貼版導入</Button></Col></Row>),
     _buttons: (
     <Badge count={hasEdited} offset={[-3,0]} dot>
-      <Button type="primary" disabled={!base64Input.length} onClick={subLinkModal.btnOnClick}>訂閱鏈接</Button>
+      <Button type="primary" disabled={!serverList.length || !base64Input.length} onClick={subLinkModal.btnOnClick}>訂閱鏈接</Button>
     </Badge>)
   }
 
