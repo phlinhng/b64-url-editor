@@ -591,7 +591,7 @@ function App() {
       <Col xs={24} sm={24} md={12}> {commonContent.serverAddress} </Col>
       <Col xs={24} sm={24} md={12}>
         <InputGroup compact>
-        <Input style={{width: "75%"}} placeholder="UUID" onChange={editOnChange.uuid} value={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.id:''} />
+        <Input style={{width: "75%", textAlign:"left"}} placeholder="UUID" onChange={editOnChange.uuid} value={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.id:''} />
         <Input style={{width: "25%"}} placeholder="AID" onChange={editOnChange.aid} value={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.aid:''} />
         </InputGroup>
       </Col>
@@ -608,8 +608,8 @@ function App() {
       sm={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? (serverList[serverPointer].json.net === 'ws'? 24:0):0}
       md={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? (serverList[serverPointer].json.net === 'ws'? 12:0):0}>
       <InputGroup compact>
-      <Input style={{width: "75%"}} placeholder="域名 (Host)" onChange={editOnChange.ws.host} value={serverList[serverPointer]? (serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.host:''):''} />
-      <Input style={{width: "25%"}} placeholder="path" onChange={editOnChange.ws.path} value={serverList[serverPointer]? (serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.path:''):''} />
+      <Input style={{width: "75%", textAlign:"left"}} placeholder="域名 (Host)" onChange={editOnChange.ws.host} value={serverList[serverPointer]? (serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.host:''):''} />
+      <Input style={{width: "25%", textAlign:"left"}} placeholder="path" onChange={editOnChange.ws.path} value={serverList[serverPointer]? (serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.path:''):''} />
       </InputGroup>
       </Col>
       <Col xs={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? (serverList[serverPointer].json.net === 'kcp'? 24:0):0}
