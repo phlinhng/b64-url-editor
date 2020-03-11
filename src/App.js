@@ -276,6 +276,7 @@ function App() {
     })
   }
 
+
   const saveOnClick = () => {
     const Base64Output = urlArray.arrToB64(serverList);
     const TextOutput = serverList.map(x => textTool.json2text[x.type](x.json) ).join(';');
@@ -340,7 +341,11 @@ function App() {
           okText: '保存',
           cancelText: '取消',
           okType: 'danger',
-          onOk: () =>  subLinkCreationConfirm(),
+          onOk: () =>  {
+            setBase64Input( urlArray.arrToB64(serverList) );
+            setTextInput( serverList.map(x => textTool.json2text[x.type](x.json) ).join(';') );
+            setHasEdited(0);
+            subLinkCreationConfirm();},
           onCancel: () => { return; }}
         );
       }else {
@@ -362,8 +367,7 @@ function App() {
           cancelText: '取消',
           okType: 'danger',
           onOk() {
-            const output = urlArray.arrToB64(serverList);
-            setBase64Input(output);
+            setBase64Input( (urlArray.arrToB64(serverList)) );
             setTextInput(serverList.map(x => textTool.json2text[x.type](x.json) ).join(';') );
             message.success('二維碼己生成');
             setHasEdited(0);
@@ -711,7 +715,7 @@ function App() {
           Created by {<a href="https://www.phlinhng.com">phlinhng</a>}. All rights reserved.
         </Col>
         <Col xs={0} sm={0} md={qrcodeVisible || subLinkVisible || customFormVisible? 0:24}>
-        <a class="github-fork-ribbon right-bottom fixed" href="https://github.com/phlinhng/b64-url-editor" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+        <a className="github-fork-ribbon right-bottom fixed" href="https://github.com/phlinhng/b64-url-editor" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
         </Col>
         </Row>
         </Footer>
