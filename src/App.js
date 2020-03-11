@@ -111,15 +111,32 @@ const urlArray = {
   arrToB64: ((arr) => ( Base64.encode( arr.map( x=> textTool.json2text[x.type](x.json) ).join(';') ) ))
 }
 
-const submitCustomForm = async (user, pwd, cipher) => {
+const generateEncrypted = (base64text, password) => {
+  const algorithm = 'aes-192-cbc';
+
+  const key = crypto.scryptSync(password, 'saltsalt', 24);
+  const iv = Buffer.alloc(16, 0); // Initialization vector.
+
+  const cipher = crypto.createCipheriv(algorithm, key, iv);
+
+  let encrypted = cipher.update(base64text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+
+  return encrypted;
+}
+
+const submitCustomForm = async (user, pwd, base64text) => {
   try {
+    // generate sha256 password as rsa key
+    const password = crypto.createHash('sha256').update(pwd).digest('base64');
+    const encrypted = generateEncrypted(base64text, password);
     // check if user and password matched
     const objId = await axios({
       method: 'post',
       baseURL: apiBaseURL,
       url: '/check',
       'Content-Type': 'application/json',
-      data: {"user": user , "pwd": crypto.createHash('sha256').update(pwd).digest('base64')}
+      data: {"user": user , "pwd": password}
     }).then(x => x.data);
     if(objId.length){
       // if matched, update records
@@ -127,7 +144,7 @@ const submitCustomForm = async (user, pwd, cipher) => {
         method: 'put',
         baseURL: apiBaseURL,
         url: objId[0]._id,
-        data: {"cipher": cipher}
+        data: {"encrypted": encrypted}
       })
     }else {
       // if not matched, create  a new record
@@ -135,8 +152,8 @@ const submitCustomForm = async (user, pwd, cipher) => {
         method: 'post',
         baseURL: apiBaseURL,
         'Content-Type': 'application/json',
-        data: {"user": user, "pwd": crypto.createHash('sha256').update(pwd).digest('base64')
-        , "cipher": cipher}
+        data: {"user": user, "pwd": password
+        , "encrypted": encrypted}
       })
     }
   }catch(err) {
