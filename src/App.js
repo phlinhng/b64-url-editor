@@ -301,7 +301,7 @@ function App() {
           setCustomLink(x);
           params.set('sub',x);
           window.history.replaceState({}, '', `${window.location.pathname}?${params}`) })
-        .then( () => { 
+        .then( () => {
           message.success('訂閱鏈接己生成');
           setCustomFormLoading(false);
           setSubLinkVisible(true);
@@ -700,7 +700,7 @@ function App() {
             <Col span={20}><Input value={customLink}/></Col>
           </Row>
           <Row justify="center">
-            {textTool.text2qrcode('123')}
+            {textTool.text2qrcode(customLink)}
           </Row>
         </Modal>
         <Modal title="請輸入資料 (用於更新訂閱鏈接)" visible={customFormVisible} onOk={customLinkForm.submit} onCancel={() => setCustomFormVisble(false)} confirmLoading={customFormLoading}>
