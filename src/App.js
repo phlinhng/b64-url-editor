@@ -209,8 +209,6 @@ function App() {
     }
   }
 
-  
-
   const inputOnChange = {
     base64: (e) => {
       setBase64Input(e.target.value);
@@ -228,8 +226,18 @@ function App() {
       if(e.target.value === '') { return; }
       const text_b64 = Base64.encode(e.target.value);
       setBase64Input(text_b64);
+      if(base64regex.test(text_b64)) {
+        try{
+          getServerList(text_b64);
+          const params = new URLSearchParams(window.location.search);
+          params.set('sub',text_b64);
+          window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+        }catch(err){
+          console.error(err);
+        }
+      }
       // if equals, mean that input text have not been transferred to urls array
-      console.log(text_b64);
+      //console.log(text_b64);
     },
     subscribe: async (e) => {
       const content = e.target.value;
@@ -245,6 +253,15 @@ function App() {
         if(e.target.value === '') { return; }
         const text_b64 = Base64.encode(content);
         setBase64Input(text_b64);
+        if(base64regex.test(text_b64)) {
+          try{
+            setTextInput(Base64.decode(text_b64));
+            getServerList(text_b64);
+            setInputActive('TEXT');
+          }catch(err){
+            console.error(err);
+          }
+        }
         // if equals, mean that input text have not been transferred to urls array
         console.log(text_b64);
       }else if(/^(http|https).*/.test(content)){
