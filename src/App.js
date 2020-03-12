@@ -230,7 +230,7 @@ function App() {
         try{
           getServerList(text_b64);
           const params = new URLSearchParams(window.location.search);
-          params.set('sub',text_b64);
+          params.set('sub',Base64.decode(text_b64));
           window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
         }catch(err){
           console.error(err);
