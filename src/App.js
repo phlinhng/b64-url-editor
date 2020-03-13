@@ -297,8 +297,7 @@ function App() {
     const TextOutput = serverList.map(x => textTool.json2text[x.type](x.json) ).join(';');
     setBase64Input(Base64Output);
     setTextInput(TextOutput);
-    setClipboard(TextOutput);
-    message.success('新鏈接己複製');
+    message.success('Saved');
     setHasEdited(0);
   }
 
