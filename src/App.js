@@ -292,12 +292,11 @@ function App() {
   }
 
 
-  const saveOnClick = () => {
+  const performSave = () => {
     const Base64Output = urlArray.arrToB64(serverList);
     const TextOutput = serverList.map(x => textTool.json2text[x.type](x.json) ).join(';');
     setBase64Input(Base64Output);
     setTextInput(TextOutput);
-    message.success('Saved');
     setHasEdited(0);
   }
 
@@ -437,16 +436,24 @@ function App() {
   }
 
   const performDelete = (obj) => {
+    let new_pointer = 0;
     // move pointer first
     if(serverList.filter(item => item.id !== obj.id).length){
-      setServerPointer( (serverPointer+1)%serverList.length );
-    }else {
-      setServerPointer(0);
+      new_pointer = (serverPointer+1)%serverList.length;
     }
+    setServerPointer(new_pointer);
     //delete
-    setServerList(serverList.filter(item => item.id !== obj.id));
-    message.success('刪除 ' + obj.json.ps + ' 成功');
-    setHasEdited(1);
+    try{
+      const new_base64 = urlArray.arrToB64(serverList.filter(item => item.id !== obj.id));
+      const new_urls = urlArray.b64ToArr(new_base64);
+      setBase64Input(new_base64);
+      setTextInput(Base64.decode(new_base64));
+      setServerList(new_urls);
+      message.success('刪除 ' + obj.json.ps + ' 成功');
+    } catch (err) {
+      console.error(err);
+    }
+    
   }
 
   const getLogo = (type) => {
@@ -682,7 +689,7 @@ function App() {
         <Button style={{marginRight: 8}} type="primary" icon={<QrcodeOutlined />} disabled={isLoading || !base64Input.length} onClick={qrcodeModal.btnOnClick}></Button>
       </Badge>
       <Badge count={hasEdited} offset={[-3,0]} dot>
-        <Button type="primary" icon={<CheckOutlined />} disabled={isLoading || !base64Input.length} onClick={saveOnClick}>保存</Button>
+        <Button type="primary" icon={<CheckOutlined />} disabled={isLoading || !base64Input.length} onClick={performSave}>保存</Button>
       </Badge>
       </span>)
   }
