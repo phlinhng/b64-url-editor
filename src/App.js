@@ -108,7 +108,7 @@ const urlArray = {
       return cipher; //if input is not a base64 cipher, return the original input
     }
   }),
-  arrToB64: ((arr) => ( Base64.encode( arr.map( x=> textTool.json2text[x.type](x.json) ).join(';') ) ))
+  arrToB64: ((arr) => ( Base64.encode( arr.map( x=> textTool.json2text[x.type](x.json) ).join('\n') ) ))
 }
 
 const submitCustomForm = async (user, pwd, base64text) => {
@@ -294,9 +294,10 @@ function App() {
 
   const performSave = () => {
     const Base64Output = urlArray.arrToB64(serverList);
-    const TextOutput = serverList.map(x => textTool.json2text[x.type](x.json) ).join(';');
+    const TextOutput = serverList.map(x => textTool.json2text[x.type](x.json) ).join('\n');
     setBase64Input(Base64Output);
     setTextInput(TextOutput);
+    message.success('保存成功');
     setHasEdited(0);
   }
 
@@ -356,8 +357,9 @@ function App() {
           okType: 'danger',
           onOk: () =>  {
             setBase64Input( urlArray.arrToB64(serverList) );
-            setTextInput( serverList.map(x => textTool.json2text[x.type](x.json) ).join(';') );
+            setTextInput( serverList.map(x => textTool.json2text[x.type](x.json) ).join('\n') );
             setHasEdited(0);
+            message.success('保存成功');
             subLinkCreationConfirm();},
           onCancel: () => { return; }}
         );
@@ -381,7 +383,7 @@ function App() {
           okType: 'danger',
           onOk() {
             setBase64Input( (urlArray.arrToB64(serverList)) );
-            setTextInput(serverList.map(x => textTool.json2text[x.type](x.json) ).join(';') );
+            setTextInput(serverList.map(x => textTool.json2text[x.type](x.json) ).join('\n') );
             message.success('二維碼己生成');
             setHasEdited(0);
             setQrcodeVisible(true);
