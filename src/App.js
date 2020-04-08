@@ -479,11 +479,12 @@ function App() {
       const new_net = e.target.value;
       if(serverList[serverPointer].json){
         const selectedId = serverList[serverPointer].id;
-        if(new_net !== 'kcp'){
-          setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, net: new_net, host: "", path: "", type: "none"} }: item));
+        if(new_net === 'kcp'){
+          setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, net: new_net, host: "", path: "", type: textTool.text2json.vmess(serverList[serverPointer].raw).json.type} }: item));
           setHasEdited(1);
-        }else if(new_net !== 'ws'){
-          setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, net: new_net, host: "", path: ""} }: item));
+        }else if(new_net === 'ws'){
+          console.log(textTool.text2json.vmess(serverList[serverPointer].raw));
+          setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, net: new_net, host: textTool.text2json.vmess(serverList[serverPointer].raw).json.host, path: textTool.text2json.vmess(serverList[serverPointer].raw).json.path} }: item));
           setHasEdited(1);
         }else{
           setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, net: new_net, host: "", path: ""} }: item));
