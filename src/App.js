@@ -37,7 +37,7 @@ const ssMethod = ['none','table','rc4','rc4-md5','rc4-md5-6','salsa20','chacha20
 
 const defaultJson = {
   ss: (num) => ({ id: "加密方式 (Method)", aid: "", add: "", port: "", ps: "new shadowsocks [%]".replace('%',num) }),
-  vmess: (num) => ({ add: "", port:"", id:"", aid: 1, net: "tcp", host: "", path:"/", tls: "none", type: "none", ps: "new v2ray [%]".replace('%',num), v: 2 }),
+  vmess: (num) => ({ add: "", port:"", id:"", aid: 1, net: "", host: "", path:"/", tls: "none", type: "none", ps: "new v2ray [%]".replace('%',num), v: 2 }),
   trojan: (num) => ({ aid: "", add: "", port: "", ps: "new trojan [%]".replace('%',num) })
 }
 
@@ -243,10 +243,6 @@ function App() {
       const content = e.target.value;
       if(content === null) { return; }
 
-      const params = new URLSearchParams(window.location.search);
-      params.set('sub',content);
-      window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
-
       setSubscribeInput(content);
       if(textTool.text2json.isText(content)) {
         setTextInput(content);
@@ -266,6 +262,9 @@ function App() {
         console.log(text_b64);
       }else if(/^(http|https).*/.test(content)){
         const key = 'fetching';
+        const params = new URLSearchParams(window.location.search);
+        params.set('sub',content);
+        window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
         message.loading({ content: '導入訂閱鏈接中', key });
         return await axios.get(content)
         .then(res => {return res.data;})
@@ -298,6 +297,7 @@ function App() {
     setBase64Input(Base64Output);
     setTextInput(TextOutput);
     message.success('保存成功');
+    console.log(serverList);
     setHasEdited(0);
   }
 
@@ -480,13 +480,13 @@ function App() {
       if(serverList[serverPointer].json){
         const selectedId = serverList[serverPointer].id;
         if(new_net !== 'kcp'){
-          setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, net: new_net, type: "none"} }: item));
+          setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, net: new_net, host: "", path: "", type: "none"} }: item));
           setHasEdited(1);
         }else if(new_net !== 'ws'){
           setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, net: new_net, host: "", path: ""} }: item));
           setHasEdited(1);
         }else{
-          setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, net: new_net} }: item));
+          setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, net: new_net, host: "", path: ""} }: item));
           setHasEdited(1);
         }
       }
@@ -622,7 +622,7 @@ function App() {
       </Col>
       <Col xs={24} sm={24} md={12}>
         <Radio.Group style={{marginLeft: -24}} onChange={editOnChange.net} disabled={isLoading || !base64Input.length} value={serverList[serverPointer]? (serverList[serverPointer].json? serverList[serverPointer].json.net:''):''}>
-          <Radio key="tcp" value="tcp">TCP</Radio>
+          <Radio key="tcp" value="">TCP</Radio>
           <Radio key="ws" value="ws">WS</Radio>
           <Radio key="kcp" value="kcp">KCP</Radio>
         </Radio.Group>
