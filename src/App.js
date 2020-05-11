@@ -37,7 +37,7 @@ const ssMethod = ['none','table','rc4','rc4-md5','rc4-md5-6','salsa20','chacha20
 
 const defaultJson = {
   ss: (num) => ({ id: "加密方式 (Method)", aid: "", add: "", port: "", ps: "new shadowsocks [%]".replace('%',num) }),
-  vmess: (num) => ({ add: "", port:"", id:"", aid: 1, net: "", host: "", path:"/", tls: "none", type: "none", ps: "new v2ray [%]".replace('%',num), v: 2 }),
+  vmess: (num) => ({ add: "", port:"", id:"", aid: 0, net: "", host: "", path:"/", tls: "none", type: "none", ps: "new v2ray [%]".replace('%',num), v: 2 }),
   trojan: (num) => ({ aid: "", add: "", port: "", ps: "new trojan [%]".replace('%',num) })
 }
 
