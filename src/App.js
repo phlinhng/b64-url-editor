@@ -85,8 +85,11 @@ const textTool = {
     ss: ( (json) => {
       // chacha20-ietf:password@mydomain.com:8888
       // id: method, aid: password
-      const ss_link = json.id + ':' + json.aid + '@' + json.add + ':' + json.port;
-      return 'ss://' + Base64.encode(ss_link) + '#' + encodeURIComponent(json.ps);
+      // sip002:
+      // SS-URI = "ss://" userinfo "@" hostname ":" port [ "/" ] [ "?" plugin ] [ "#" tag ]
+      // userinfo = websafe-base64-encode-utf8(method  ":" password)
+      const ss_info = json.id + ':';
+      return 'ss://' + Base64.encode(ss_info) + json.aid + '@' + json.add + ':' + json.port + '#' + encodeURIComponent(json.ps);
     }),
     trojan: ( (json) => {
       // trojan://[password]@[address]:[port]?peer=#[remark]
