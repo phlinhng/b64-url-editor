@@ -62,17 +62,20 @@ const textTool = {
       return { type: urlType(text), json: vmess_json, raw: text, id: shortid.generate() };
     }),
     ss: ( (text) => {
-      const starIndex = text.search('#');
-      const ss_name = decodeURIComponent(text.slice(starIndex+1));
-      const ss_link = Base64.decode(text.slice(5,starIndex)).split(/[@:]+/); // chacha20-ietf:password@mydomain.com:8888
-      const ss_json = { id: ss_link[0], aid: ss_link[1], add: ss_link[2], port: ss_link[3], ps: ss_name };
+      const remarkStartIndex = text.search('#');
+      const ss_name = decodeURIComponent(text.slice(remarkStartIndex+1));
+      const ss_link = text.slice(5,remarkStartIndex).split(/[@:]+/); // userinfo@mydomain.com:8888
+      const ss_info = Base64.decode(ss_link[0]).split(':'); // userinfo = websafe-base64-encode-utf8(method  ":" password)
+      const ss_json = { id: ss_info[0], aid: ss_info[1], add: ss_link[1], port: ss_link[2], ps: ss_name };
       return { type: urlType(text), json: ss_json, raw: text, id: shortid.generate()}; //id: security method, aid: password
     }),
     trojan: ( (text) =>{
-      const starIndex = text.search('#');
-      const trojan_name = decodeURIComponent(text.slice(starIndex+1)); // trojan://[password]@[address]:[port]?peer=#[remark]
-      const trojan_link = text.slice(9,starIndex-6).split(/[@:]+/);
-      const trojan_json = { aid: trojan_link[0], add: trojan_link[1], port: trojan_link[2], ps: trojan_name };
+      const argStartIndex = text.search('\\?');
+      const remarkStartIndex = text.search('#');
+      const trojan_name = decodeURIComponent(text.slice(remarkStartIndex+1)); // trojan://[password]@[address]:[port]?peer=[host]#[remark]
+      const trojan_link = text.slice(9,argStartIndex).split(/[@:]+/);
+      const trojan_peer = text.slice(argStartIndex+1,remarkStartIndex).replace('peer=','');
+      const trojan_json = { aid: trojan_link[0], add: trojan_link[1], port: trojan_link[2], host: trojan_peer, ps: trojan_name };
       return {type: urlType(text), json: trojan_json, raw: text, id: shortid.generate()};
     }),
     unsupported: ( (text) => {
@@ -93,7 +96,7 @@ const textTool = {
     }),
     trojan: ( (json) => {
       // trojan://[password]@[address]:[port]?peer=#[remark]
-      return 'trojan://' + json.aid + '@' + json.add + ':' + json.port + '?peer=#' + encodeURIComponent(json.ps);
+      return 'trojan://' + json.aid + '@' + json.add + ':' + json.port + '?peer='+ (json.host? json.host:json.add) + '#' + encodeURIComponent(json.ps);
     }),
     unsupported: ( (json) => json.raw )
   }),
@@ -523,7 +526,7 @@ function App() {
     ws: {
       host: ((e) => {
         const selectedId = serverList[serverPointer].id;
-        if(serverList[serverPointer].json.net === 'ws'){
+        if(serverList[serverPointer].json.net === 'ws' || serverList[serverPointer].type === 'trojan'){
           setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, host: e.target.value} }: item));
           setHasEdited(1);
         }else {
@@ -675,6 +678,11 @@ function App() {
       <Col xs={24} sm={24} md={12}> {commonContent.serverAddress} </Col>
       <Col xs={24} sm={24} md={12}>
         <Input.Password placeholder="密碼 (Password)" onChange={editOnChange.aid} value={serverList[serverPointer] && serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.aid:''} />
+      </Col>
+      <Col xs={24} sm={24} md={12}>
+        <InputGroup compact>
+        <Input style={{width: "100%", textAlign:"left"}} placeholder="域名 (Server Name)" onChange={editOnChange.ws.host} value={serverList[serverPointer]? (serverList[serverPointer].hasOwnProperty('json')? serverList[serverPointer].json.host:''):''} />
+        </InputGroup>
       </Col>
       </Row>
     )
