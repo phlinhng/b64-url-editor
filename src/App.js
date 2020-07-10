@@ -499,7 +499,11 @@ function App() {
     }),
     address : ((e) => {
       const selectedId = serverList[serverPointer].id;
-      setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, add: e.target.value} }: item));
+      if(serverList[serverPointer].type === 'vmess' && serverList[serverPointer].json.net === 'tcp') {
+        setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, add: e.target.value, host: e.target.value} }: item));
+      }else{
+        setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, add: e.target.value} }: item));
+      }
       setHasEdited(1);
     }),
     port: ((e) => {
