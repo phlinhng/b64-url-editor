@@ -499,7 +499,7 @@ function App() {
     }),
     address : ((e) => {
       const selectedId = serverList[serverPointer].id;
-      if(serverList[serverPointer].type === 'vmess' && serverList[serverPointer].json.net === 'tcp') {
+      if(serverList[serverPointer].type === 'vmess' && !serverList[serverPointer].json.net) {
         setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, add: e.target.value, host: e.target.value} }: item));
       }else{
         setServerList(serverList.map(item => item.id === selectedId ? {...item, json: {...item.json, add: e.target.value} }: item));
