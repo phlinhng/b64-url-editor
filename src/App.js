@@ -88,8 +88,8 @@ const textTool = {
       // sip002:
       // SS-URI = "ss://" userinfo "@" hostname ":" port [ "/" ] [ "?" plugin ] [ "#" tag ]
       // userinfo = websafe-base64-encode-utf8(method  ":" password)
-      const ss_info = json.id + ':';
-      return 'ss://' + Base64.encode(ss_info) + json.aid + '@' + json.add + ':' + json.port + '#' + encodeURIComponent(json.ps);
+      const ss_info = json.id + ':' + json.aid;
+      return 'ss://' + Base64.encode(ss_info) + '@' + json.add + ':' + json.port + '#' + encodeURIComponent(json.ps);
     }),
     trojan: ( (json) => {
       // trojan://[password]@[address]:[port]?peer=#[remark]
