@@ -108,7 +108,7 @@ const urlArray = {
     if(cipher.length && base64regex.test(cipher)){
       const text_list = Base64.decode(cipher).split(/[,;\n]+/); //base64 cipher to text to array of texts
       const json_arr = text_list.map(x => textTool.text2json[urlType(x)](x)); // array of texts to array of jsons
-      console.log('urlArray.b64ToArr',json_arr);
+      //console.log('urlArray.b64ToArr',json_arr);
       return json_arr; //array of jsons
     }else {
       return cipher; //if input is not a base64 cipher, return the original input
@@ -215,6 +215,18 @@ function App() {
     }
   }
 
+  const getSubscription = async (subs) => {
+    let subArr = subs.split(/[,;\n]+/);
+    let resultArr = [];
+    for(let sub of subArr){
+      await axios.get(sub)
+      .then(res => {
+        resultArr.push(Base64.decode(res.data));
+      }).catch(console.error);
+    }
+    return resultArr.join('\n');
+  }
+
   const inputOnChange = {
     base64: (e) => {
       setBase64Input(e.target.value);
@@ -272,12 +284,10 @@ function App() {
         params.set('sub',content);
         window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
         message.loading({ content: '導入訂閱鏈接中', key });
-        return await axios.get(content)
-        .then(res => {return res.data;})
-        .then(x => {setBase64Input(x); return Base64.decode(x);})
+        return await getSubscription(content)
         .then(x => {setTextInput(x); return Base64.encode(x);})
-        .then(x => {return getServerList(x);})
-        .then(x => {message.success({ content: '導入 ' + x.length + '個節點' + ' 成功', key, duration: 2 }); return x.length;})
+        .then(x => {setBase64Input(x); return getServerList(x);})
+        .then(x => {message.success({ content: ['導入',x.length,'個節點','成功'].join(' '), key, duration: 2 });})
         .catch(err => {console.error(err); message.warning({ content: '導入失敗', key, duration: 2 }); });
       }
     }
@@ -738,7 +748,7 @@ function App() {
             <Col span={20}><Input value={customLink}/></Col>
           </Row>
           <Row justify="center">
-            {textTool.text2qrcode(customLink)}
+            {textTool.text2qrcode( "sub://" + Base64.encode(customLink) )}
           </Row>
         </Modal>
         <Modal title="請輸入資料 (用於更新訂閱鏈接)" visible={customFormVisible} onOk={customLinkForm.submit} onCancel={() => setCustomFormVisble(false)} confirmLoading={customFormLoading}>

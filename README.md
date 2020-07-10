@@ -57,6 +57,6 @@ https://www.phlinhng.com/b64-url-editor?sub=[your subscrption links]&qrcode=yes
 + [x] 完善URL Query
 + [ ] 完善一鍵粘貼
 + [ ] 調換節點順序
-+ [ ] 多個訂閱連結合併
++ [x] 多個訂閱連結合併
 + [x] 完成README.md
-+ [ ] 寫一篇博客文章
++ [x] 寫一篇博客文章
