@@ -457,7 +457,7 @@ function App() {
     let new_pointer = 0;
     // move pointer first
     if(serverList.filter(item => item.id !== obj.id).length){
-      new_pointer = (serverPointer+1)%serverList.length;
+      new_pointer = (serverPointer+1)%serverList.filter(item => item.id !== obj.id).length;
     }
     setServerPointer(new_pointer);
     //delete
