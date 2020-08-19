@@ -2,7 +2,7 @@
   "name": "b64-url-editor",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://phlinhng.github.io/b64-url-editor",
+  "homepage": "https://www.phlinhng.com/b64-url-editor",
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
