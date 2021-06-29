@@ -1,6 +1,8 @@
 # BASE64格式訂閱連結編輯器 (小火箭訂閱鏈接編輯器)
 一個可以生成和修改ShadowRocket (iOS)、v2rayNG (Android)訂閱連結的工具。
 
+ps. 後端 API 爆了，不再維護訂閱功能。
+
 ## 網址
 <https://www.phlinhng.com/b64-url-editor>
 
